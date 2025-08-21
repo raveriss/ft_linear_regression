@@ -1,0 +1,29 @@
+[project]
+name = "ft-linear-regression"
+version = "0.1.0"
+description = "42 ft_linear_regression (Ubuntu-only, Poetry)"
+authors = [
+    {name = "raveriss",email = "you@example.com"}
+]
+readme = "README.md"
+requires-python = ">=3.10,<3.11"
+dependencies = [
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3"
+mypy = "^1.10"
+ruff = "^0.5"
+mutmut = "^3.0"
+
+
+[tool.poetry.group.viz]
+optional = true
+[tool.poetry.group.viz.dependencies]
+matplotlib = "^3.9"
+

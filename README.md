@@ -73,20 +73,22 @@ python3 -m src.predict --km 85000 --theta theta.json
 Scénario officiel à démontrer en soutenance, en trois étapes **obligatoires** :
 
 **Étape A :** prédiction avant tout entraînement  
-# Suppression du fichier de paramètres
+### Suppression du fichier de paramètres
 ```bash
 rm -f theta.json
 python3 -m src.predict --km 50000 --theta theta.json
 ```
-# → Résultat attendu : 0 (θ₀=0, θ₁=0 par défaut)
+### → Résultat attendu : 0 (θ₀=0, θ₁=0 par défaut)
+
 **Étape B :** entraînement du modèle
 
 ```bash
 python3 -m src.train --data data.csv --alpha 1e-7 --iters 100000 --theta theta.json
 ```
-# → Apprentissage des paramètres θ₀ et θ₁, sauvegardés dans theta.json
+### → Apprentissage des paramètres θ₀ et θ₁, sauvegardés dans theta.json
+
 **Étape C :** prédiction après entraînement
-# → Résultat attendu : prix non nul, cohérent avec la droite apprise (≈ CSV)
+### → Résultat attendu : prix non nul, cohérent avec la droite apprise (≈ CSV)
 ```bash
 python3 -m src.predict --km 50000 --theta theta.json
 ```
@@ -95,7 +97,7 @@ Tout écart (crash, valeur incohérente, absence de 0 en étape A, MAJ non simul
 
 ### (Bonus) Visualisation
 > Évaluable **uniquement si le mandatory est parfait**. Non requis pour la soutenance.
-# Si vous avez installé le groupe bonus viz :
+### Si vous avez installé le groupe bonus viz :
 ```bash
 poetry run python -m src.viz --data data.csv --theta theta.json
 ```

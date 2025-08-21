@@ -136,7 +136,7 @@ jobs:
           disable_search: true
           flags: unittests
           name: ci-ubuntu-py${{ env.PYTHON_VERSION }}
-          slug: raveriss/krpsim
+          slug: raveriss/ft_linear_regression
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
 

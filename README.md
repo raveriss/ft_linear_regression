@@ -1,11 +1,16 @@
 # ft_linear_regression 🚗📈  
+
+<div align="center">
+
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)  
 ![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)  
-![CI](https://github.com/raveriss/ft_linear_regression/actions/workflows/ci.yml/badge.svg)  
-![Coverage](https://codecov.io/gh/raveriss/ft_linear_regression/branch/main/graph/badge.svg?token=XXXX)  
-![Lint](https://img.shields.io/badge/lint-ruff%20✔-yellow.svg)  
+[![CI](https://github.com/raveriss/ft_linear_regression/actions/workflows/ci.yml/badge.svg?branch=main))  
+[![codecov](https://codecov.io/gh/raveriss/ft_linear_regression/graph/badge.svg?token=MCSJOMRUXL)](https://codecov.io/gh/raveriss/ft_linear_regression)![Lint](https://img.shields.io/badge/lint-ruff%20✔-yellow.svg)  
 ![Typing](https://img.shields.io/badge/mypy-checked-purple.svg)  
 ![Mutation](https://img.shields.io/badge/mutmut-≥90%25-orange.svg)  
+![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?label=pre--commit)
+
+</div>
 
 ---
 

@@ -1,0 +1,162 @@
+# 1) Paramétrage de la couverture (technique & CI)
+* [ ] Activer **branch coverage** (pas seulement statement).
+  * [ ] `.coveragerc`: `run: branch = True`
+* [ ] Compter la couverture des **sous-processus/threads** (`concurrency = multiprocessing,thread`, `parallel = True`).
+  * [ ] Exporter **COVERAGE_PROCESS_START=.coveragerc** en CI (et local).
+  * [ ] Hook d’attache auto : fichier **sitecustomize.py** ou **.pth** qui fait import coverage; coverage.process_startup().
+  * [ ] `run: concurrency = multiprocessing,thread` et `parallel = True`
+  * [ ] Publier **coverage debug sys** en artefact (diagnostic chemins/interpréteur).
+* [ ] **Contexts dynamiques** pour la précision du diff : `dynamic_context = test_function`.
+* [ ] Interdire les tricheries (`# pragma: no cover`) et **justifier une par une**.
+* [ ] Mesurer **tous les paquets pertinents** (pas d’exclusions abusives dans `omit=`).
+* [ ] Agréger correctement les runs parallèles (`coverage combine`).
+  * [ ] Combine **avant** `coverage xml`/upload et **après** tous les jobs CI.
+* [ ] CI : **fail-under strict = 100**, **diff coverage = 100 %**, pas de flags Codecov qui masquent des dossiers.
+  * [ ] Activer “patch must be 100%” côté Codecov ; refuser les “flags” qui excluent un répertoire.
+* [ ] **Report ergonomique** : `precision = 2`, `sort = Miss,Name`, `skip_empty = True`.
+  * [ ] Générer `coverage.xml` (pour Codecov) et HTML (audit manuel).
+* [ ] **Publier coverage debug config et coverage debug data en artefacts (en plus de debug sys) pour diagnostiquer les fusions.
+  * [ ] coverage debug config > coverage_debug_config.txt
+  * [ ] coverage debug data > coverage_debug_data.txt
+* [ ] **Nommer un fichier coverage par job pour éviter les collisions de runs parallèles :
+  * [ ] COVERAGE_FILE=".coverage.${{ matrix.os }}-${{ matrix.python-version }}" (CI)
+  * [ ] Variante locale : COVERAGE_FILE=".coverage.$(uname -s)-py$(python -c 'import sys;print(f\"{sys.version_info.major}.{sys.version_info.minor}\")')"
+
+---
+
+# 2) Spécifique au sujet (conformité 42)
+
+* [ ] **Deux programmes distincts** (`train.py`, `predict.py`).
+* [ ] Hypothèse exacte : `estimatePrice(x) = θ₀ + θ₁ * x`.
+* [ ] **Initialisation** : `θ₀ = 0`, `θ₁ = 0`.
+* [ ] **Mise à jour simultanée** via `tmpθ₀`, `tmpθ₁`.
+* [ ] **Pas de lib magique** (`numpy.polyfit`, `sklearn.LinearRegression`).
+* [ ] **Prédiction avant entraînement = 0** pour tout km.
+* [ ] **Persistance de θ** robuste (ex. `theta.json` UTF‑8) + comportement si fichier manquant/corrompu (message + exit code ≠ 0).
+* [ ] **CLI** pour `--alpha`, `--iters` (et `--seed` si nécessaire) afin d’éviter les “magic numbers”.
+
+---
+
+# 3) Portée des tests (quoi couvrir)
+
+* [ ] **Unitaires** : chaque fonction publique (cas nominal, limites, erreurs).
+* [ ] **E2E** : `predict(0)=0 → train → predict(km du CSV) ≈ prix`.
+* [ ] **Branches conditionnelles** (`if/else`, `try/except/finally`).
+* [ ] **Booléens composés** : tester (T,T), (T,F), (F,T), (F,F).
+* [ ] **Erreurs I/O** : fichier manquant, CSV mal formé, permissions, EOF stdin.
+* [ ] **Numérique** : km négatif, très grand, NaN, `,` décimal, extrapolation hors plage.
+* [ ] **Normalisation** (si ajoutée) → cohérence train/predict.
+* [ ] **Locales & décimales** : tests dédiés fr_FR.UTF-8vsC (,et.) ; JSON de θ **toujours** en . (indépendant de la locale).
+* [ ] **θ persistance** : tests dédiés (absent, JSON invalide, droits) → messages + codes retour.
+* [ ] ** Entrypoints/__main__ : couvrir l’exécution via python -m train / predict, y compris le bloc if __name__ == "__main__":.
+* [ ] ** Early‑stopping (si activé) : vérifier qu’on s’arrête quand ΔJ < atol ou ‖Δθ‖ < atol ; pas d’oscillation (J non croissant) ; journaliser le nbre d’itérations effectif.
+
+---
+
+# 4) Qualité des assertions
+
+* [ ] ≥1 **assertion significative** par test (pas juste “ça crashe pas”).
+* [ ] Vérifier valeurs **et effets de bord** (fichier θ, exit code, logs).
+* [ ] **Tolérances floats** (`rtol/atol`, jamais `==`).
+* [ ] **Contrats négatifs** : entrées invalides → bonne exception/message.
+* [ ] Vérifier invariants : coût ↓, gradients → 0.
+* [ ] Comparer θ appris ≈ solution OLS fermée (oracle interne).
+* [ ] Isolation par test : usage de tmp_path pour fichiers (theta.json) → pas d’état partagé.
+* [ ] Horloge figée (ex. freezegun) si le code dépend du temps.
+* [ ] Blocage réseau (pytest-socket) → garantir exécution offline.
+* [ ] Nettoyage systématique des fichiers temporaires.
+* [ ] **Aide & erreurs CLI** : assertions explicites sur --help (exit=0, usage) et **messages d’erreur** (snapshot minimal, exit≠0).
+* [ ] ** 🧪 MAJ simultanée obligatoire** : un test échoue si θ₀, θ₁ sont mis à jour sans temporaires (tmpθ₀, tmpθ₁).
+Idée de test rapide : monkeypatcher qui force un ordre d’écriture “mauvais” → vérifie que la somme d’erreurs augmente ou que l’invariant “MAJ simultanée” est explicitement checké (assert sur message/log).
+---
+
+# 5) Stratégies avancées
+
+* [ ] **Mutation testing** (`mutmut`, `cosmic-ray`) → seuil ≥ 90 %.
+* [ ] **Budget temps** : scope ciblé (core algo, I/O critique) + **timeout global** pour la CI stable.
+* [ ] **Artefacts mutants** (logs + survivants) publiés en CI.
+* [ ] **Property-based testing** (`hypothesis`).
+* [ ] **Fuzz CLI** : encodages, CRLF, `,` vs `.`, Unicode.
+* [ ] **Boundary analysis** (km=0, juste avant/après max).
+* [ ] **Flaky guard** (`pytest-randomly`, `PYTHONHASHSEED`, seed RNG).
+* [ ] Timeout par test (`pytest-timeout`).
+
+---
+
+# 6) Environnement & reproductibilité
+
+* [ ] **Matrix CI** : ≥2 Python × ≥2 OS.
+* [ ] **Verrouiller dépendances** (`poetry.lock`/`requirements.txt`).
+* [ ] Tests offline (aucun accès réseau).
+* [ ] Tester locales (`fr_FR.UTF-8`, `C`).
+* [ ] Paths relatifs/absolus, répertoires read-only.
+* [ ] **Combine cross‑jobs** : artefacts `/.coverage.*` persistés puis `coverage combine` dans un job d’agrégation.
+* [ ] **Traçabilité run** : archiver METADATA.txt(Python/OS/locale/commit),coverage.xml, **HTML**, **logs mutation** (toujours, même si job échoue).
+* [ ]  Chemins robustes : préférer pathlib.Path + resolve().relative_to(repo_root) ; refuser les hypothèses sur le CWD.
+---
+
+# 7) Anti-patterns à éviter
+
+* [ ] **Sur-mock** : pas du core algo.
+* [ ] Tester comportement **public**, pas l’implémentation.
+* [ ] **Tests cosmétiques** sans assert.
+* [ ] Modules importés dynamiquement oubliés (dont `__main__`).
+
+---
+
+# 8) Garde-fous CI/Codecov
+
+* [ ] PR bloquées si couverture baisse.
+* [ ] Refuser patch verts / global rouge → diff = 100 %.
+* [ ] **Seuil par fichier** : échouer si un fichier < 100 % (parser coverage json).
+* [ ] Interdire `ignore:` non justifiés.
+* [ ] Publier artefacts : `coverage.xml`, HTML, logs mutation.
+* [ ] Vérifier que Codecov ne filtre **aucun** dossier critique (pas de “flags” excluants).
+* [ ] **Codecov “pinné”** : version figée du binaire/codecovclien CI + **désactiver l’auto‑détection des flags** danscodecov.yml.
+* [ ] Upload inconditionnel (if: always()) des artefacts (coverage, HTML, logs mutation) pour diagnostiquer même quand fail-under=100 stoppe les jobs.
+* [ ] **Artefacts systématiques** : coverage.xml, htmlcov/, logs mutation, METADATA.txtavecif: always().
+* [ ] **Exporter coverage.json en plus de coverage.xml pour le contrôle “seuil par fichier”.
+* [ ] **Contrôle par fichier (script CI) : échouer si un fichier < 100 % (lecture de coverage.json).
+* [ ] **🔐 Codecov uploader vérifié : vérifier la signature/sha256 du binaire avant exécution.
+  * [ ] Pin de version (codecov-cli ou uploader autonome) + vérif sha256sum.
+  * [ ] Refuser l’auto‑détection de flags (déjà noté) et pinner la version dans la CI.
+* [ ] **🗂️ COVERAGE_FILE par job** (rappel) : .coverage.${{ matrix.os }}-${{ matrix.python-version }} avant coverage combine.
+
+* [ ] **🧰 Artifacts diagnostics** : uploader coverage_debug_config.txt, coverage_debug_data.txt toujours (if: always()), en plus de coverage.xml, htmlcov/, logs mutation.
+---
+
+# 9) Spécifique fichiers/CLI
+
+* [ ] `--help` fonctionne, toutes options documentées.
+* [ ] **Tests d’interface** : --help vérifié (contenu minimal), erreurs d’options malformées → message clair + exit≠0.
+* [ ] Entrées stdin/fichiers inexistants/dossiers gérés.
+* [ ] UTF-8 partout, CRLF/LF tolérés.
+* [ ] Codes de sortie : 0 succès, ≠0 échec → testés.
+* [ ] 🧾 **Snapshot CLI --help minimal (plugin de régression) : valider usage/texte essentiel de --help et des erreurs d’options, avec snapshot compact (pour éviter la fragilité vis‑à‑vis des timestamps/paths).
+
+---
+
+# 10) Hygiène & sécurité
+
+* [ ] Pas de **dead code** (`vulture`).
+* [ ] Typage (`mypy`) + lint (`ruff`) en CI.
+* [ ] Complexité (`radon/xenon`) contrôlée.
+* [ ] Pas d’**injection shell** via input.
+* [ ] Scripts exécutables (`python3 train.py`).
+* [ ] Pas de dépendances réseau.
+* [ ] (Option) **pre-commit** pour format/lint/tests rapides en local.
+
+---
+
+# 11) Procédure de validation finale
+
+1. `pytest -q` → tous les tests passent.
+2. `coverage run -m pytest && coverage combine && coverage report --fail-under=100` (`branch=True`).
+2bis. **Vérif par‑fichier** : coverage json → **tous** les fichiers = 100 %
+3. **Mutation testing** ≥90 %.
+4. Vérification visuelle HTML (tout vert).
+5. Vérification E2E : `predict(0)=0 → train → predict≈csv`.
+6. Rejouer en **matrix CI** (Python/OS).
+7. Vérifier artefacts mutants + couverture cross-jobs.
+8. **Paquet d’artefacts** : coverage.xml, htmlcov/, logs mutation, METADATA.txt attachés au job final.
+

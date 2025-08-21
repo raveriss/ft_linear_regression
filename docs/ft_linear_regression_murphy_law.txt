@@ -1,0 +1,122 @@
+Parfait. J’ai lu les deux sujets fournis (énoncé et grille d’évaluation) et j’ai inspecté **data.csv** (24 lignes, colonnes `km` et `price`, corrélation `km`↘`price` ≈ −0,86). À partir de ça, voici la **checklist “Loi de Murphy”** ultra-granulaire des risques pour une implémentation Python du projet **ft\_linear\_regression** (prédiction de prix de voiture vs kilométrage, descente de gradient, deux programmes séparés, mise à jour **simultanée** de θ₀ et θ₁, et **pas de polyfit** / lib qui “fait tout”)    .
+
+# 1) Spécification & conformité (risques d’échec à la soutenance)
+
+* Utiliser une lib interdite (ex. `numpy.polyfit`, `sklearn.LinearRegression`) → **flag Cheat** immédiat. &#x20;
+* Ne pas séparer **deux programmes** (un pour prédire, un pour entraîner).&#x20;
+* Ne pas **initialiser θ₀ = 0, θ₁ = 0** avant tout entraînement.&#x20;
+* Ne pas **sauvegarder** θ₀ et θ₁ après l’entraînement pour réutilisation par le programme de prédiction.&#x20;
+* Ne pas mettre à jour **simultanément** θ₀ et θ₁ (ou réutiliser θ mis à jour au lieu des temporaires `tmpθ₀`, `tmpθ₁`). &#x20;
+* Ne pas respecter **l’hypothèse** exacte `estimatePrice(x) = θ₀ + θ₁ * x`.&#x20;
+* Crash, sortie non-contrôlée pendant la soutenance → **note 0**.&#x20;
+* Échec à **lire le CSV** fourni, ou format non conforme.&#x20;
+* Bonus évalués alors que le **mandatory** n’est pas parfait.&#x20;
+
+# 2) Données (lecture, validation, robustesse)
+
+* **Chemin**/droits du `data.csv` (fichier absent, permissions insuffisantes, chemin relatif cassé).
+* **Encodage/fin de ligne** non UTF-8/`LF` → erreurs subtiles.
+* En-têtes inattendues (`km`, `price` vs autre casse/espaces) → mauvaise sélection de colonnes.
+* **Types** non numériques (chaînes “12 345”, “6 300€” ; séparateurs `,` vs `.` ; `NaN`) → cast foireux.
+* Lignes **vides/dupliquées** → biais, variance inutile.
+* **Outliers** (ex. km = 0, 240000+, prix aberrant) → pente/interception déformées.
+* **Plage d’entraînement** limitée (24 lignes) → variance, sensibilité aux points extrêmes.
+* **Colinéarité triviale** (une seule feature) masquant problèmes de généralisation.
+* **Hétéroscédasticité** (variance du prix différente selon km) → régression OLS/ GD sensible.
+* **Extrapolation** hors plage (prédire à km >> max train) → résultats absurdes.
+* **Valeurs négatives** ou non physiques (km < 0, price < 0) non filtrées.
+* **Mélange d’unités** (km vs miles) → pente incohérente.
+* **Tri aléatoire** (shuffle) non fixé → reproductions différentes si ajouté plus tard.
+
+# 3) I/O & UX (programme de prédiction)
+
+* Saisie **interactive** non validée (texte, vide, `,` décimal FR) → crash/`ValueError`.
+* Absence de **bornes** (km négatif, trop grand) → résultat non réaliste.
+* **Arrondis**/formatage (prix float à 6 décimales, pas d’€ ou d’unité) → confusion.
+* Non-gestion de **EOF/pipe** (`echo 50000 | predict`) → blocage.
+* **Codes de retour** shell non standard (ne pas renvoyer `≠0` sur erreur).
+* Non-affichage clair des **θ** utilisés (traçabilité) et du fichier source.
+
+# 4) Entraînement (descente de gradient)
+
+* **Learning rate (α)** trop grand → divergence/NaN ; trop petit → convergence interminable.
+* **Échelle des features** (km \~ 10⁵) : gradient mal conditionné, oscillations → nécessité de **normaliser** (même si non exigé, c’est un vrai risque pratique).
+* **Nombre d’itérations** insuffisant/excessif (arrêt trop tôt vs temps perdu).
+* Pas de **critère d’arrêt** (tolérance sur ΔJ, Δθ) → sur/apprentissage ou boucles infinies.
+* Non-vectorisation minimale → lenteurs (mais sur 24 lignes, surtout stylistique).
+* **Mise à jour non simultanée** (déjà cité) → résultat faux malgré code “qui tourne”.&#x20;
+* **Mauvaise formule** des gradients (ou oublier `1/m`) → θ invalides.&#x20;
+* Oublier que `estimatePrice` utilisée dans le gradient doit prendre **les θ temporaires** pour le calcul de `tmpθ`.&#x20;
+* **Overflow/underflow** float (rare ici, mais possible si α énorme).
+* **Seed** non fixée si bruit ajouté en bonus → résultats variables.
+
+# 5) Persistance des paramètres (θ₀, θ₁)
+
+* Format non robuste (ex. écrire `str(θ)` sans séparateur) → parsing cassé.
+* Écrire en **binaire** puis lire en **texte** → corruption.
+* **Locale** (virgule décimale) modifiant le séparateur dans les fichiers.
+* **Chemin** hors repo/école (droits, sandbox) → lecture impossible à la soutenance.
+* Oublier de **charger** θ avant prédiction (ou charger des θ obsolètes).
+
+# 6) Qualité de code & structure (exigences pratiques 42)
+
+* Mélanger **logique d’I/O** et **calcul** (pas testable).
+* Fonctions sans **docstring**, pas de `if __name__ == "__main__":`.
+* Variables **globales**, état caché.
+* **Magic numbers** (α, itérations) en dur sans option CLI.
+* **Nom des scripts**/fichiers inattendus → examinateur ne trouve pas les entrées.
+* Absence de **gestion d’erreurs**/exceptions → crash au premier input invalide.
+* **Logging** verbeux en stdout (pollue les sorties attendues).
+* **Couverture de tests** insuffisante (pas de tests sur NaN, km négatif, extrapolation).
+* **Typage** non vérifié (mypy), style non vérifié (ruff/flake8) → bugs discrets.
+* **Reproductibilité** (requirements, version Python) non verrouillée.
+
+# 7) Évaluation & validation
+
+* Ne pas vérifier la **prédiction = 0** avant entraînement comme attendu.&#x20;
+* Après entraînement, la prédiction ne **suit pas** grossièrement les prix csv (θ mauvais).&#x20;
+* **Sur-apprentissage apparent** (précision “trop parfaite” sur l’échantillon minuscule) → soupçon de triche/overfitting mentionné.&#x20;
+* Aucune **métrique** (bonus “programme de précision”) → pas d’argument de performance.&#x20;
+
+# 8) Performance / UX bonus (facultatif mais risqué)
+
+* Graphiques illisibles (axes non étiquetés, échelle incohérente).&#x20;
+* Ligne de régression tracée avec **mauvaise formule** (θ mal chargés).
+* Script bonus qui **casse** le mandatory (conflits d’imports/versions).
+
+# 9) Environnement & dépendances
+
+* Différences **local ↔ soutenance** (versions Python, `numpy` absent).
+* **Chemins relatifs** supposant un CWD spécifique.
+* Exécution hors venv → collision de dépendances.
+* **Droits** d’écriture pour save θ sur machines 42.
+* **Horloge/locale** (affichage, parsing nombres).
+
+# 10) Sécurité & robustesse système
+
+* Lecture de fichiers arbitraires via input non filtré (`../../secret`).
+* Injection terminale si vous shell-ez des commandes avec l’input utilisateur.
+* Fichiers temporaires non nettoyés (collision de noms).
+
+# 11) Process & soutenance (logistique)
+
+* Repo non clonable/nettoyé (fichiers manquants, scripts non exécutables).&#x20;
+* Mauvais **GUIDE d’exécution** (README absent/obsolète) → temps perdu, stress.
+* Pas de **démonstration** claire : ordre “predict→0”, “train”, “predict→prix”.&#x20;
+* **Scripts d’aide** non expliqués à l’évaluateur → suspicion.
+
+---
+
+# Contre-mesures (version ultra-succincte, à implémenter tout de suite)
+
+* **Contrats d’entrée** : parser robuste pour `km` (float, `,`/`.`), bornes ≥ 0, messages clairs, codes de retour.
+* **Lecture CSV** stricte (colonnes `km`, `price`), validation types, drop `NaN`, déduplication, tri par `km`.
+* **GD sain** : α configurable (CLI), normalisation optionnelle de `km`, itérations fixées + `early stopping`, MAJ **simultanée** de θ.
+* **Persistance** : `theta.json` (`{"theta0":…, "theta1":…}`), encodage UTF-8, emplacement local au projet.
+* **Tests** : unités (formules, MAJ simultanée), e2e (before=0 → train → after≈csv), cas limites (km=0, gros km, texte).
+* **CLI** : `train.py --data data.csv --alpha 1e-7 --iters 100000`, `predict.py --km 85000`, `--theta theta.json`.
+* **Docs** : README avec séquence de soutenance, sans mention de lib “magiques”.
+* **Pas de polyfit / sklearn**. (Oui, je le répète.)
+
+Tu veux, ensuite, que je te fournisse un squelette de projet **conforme** (fichiers, CLI, tests, README “défense-proof”) ? On verrouille tout et on enlève toute surface d’échec.
+

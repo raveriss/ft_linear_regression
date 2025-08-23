@@ -72,7 +72,7 @@ python3 -m src.train --data data.csv --alpha 1e-7 --iters 100000 --theta theta.j
 python3 -m src.predict --km 85000 --theta theta.json
 # ou
 python3 src/train/train.py --data data.csv --alpha 1e-7 --iters 100000 --theta theta.json
-python3 src/train/predict.py --km 85000 --theta theta.json
+python3 src/predict/predict.py --km 85000 --theta theta.json
 
 ```
 ### 0.3 Makefile (raccourcis non intrusifs)
@@ -193,7 +193,7 @@ PY
 
 ## 1) 🧩 Architecture minimale (agents)
 - **`src/train/train.py`** : entraînement par **descente de gradient** ; MAJ **simultanée** de `θ0, θ1` via temporaires ; sauvegarde `theta.json`.
-- **`src/train/predict.py`** : prédiction **interactive par défaut**. Si `--km` absent → **prompt** utilisateur. Charge `theta.json`.
+- **`src/predict/predict.py`** : prédiction **interactive par défaut**. Si `--km` absent → **prompt** utilisateur. Charge `theta.json`.
 - **`src/io_utils.py`** : lecture CSV robuste (colonnes `km`,`price`), validation/parse.
 - **`tests/`** : unitaires + E2E + erreurs I/O + contrats.
 - **Bonus isolé** : `src/viz.py` (groupe Poetry `viz`) — **évalué uniquement si mandatory parfait**.

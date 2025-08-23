@@ -67,9 +67,8 @@ def test_train_parser_definition() -> None:
     assert actions["data"].help == "path to training data CSV"
     assert actions["data"].required is True
     assert actions["alpha"].option_strings == ["--alpha"]
-    assert actions["alpha"].help is not None and actions["alpha"].help.startswith(
-        "learning rate"
-    )
+    help_text = actions["alpha"].help or ""
+    assert help_text.startswith("learning rate")
     assert actions["alpha"].required is False
     assert actions["alpha"].default == pytest.approx(0.1)
     assert actions["iters"].option_strings == ["--iters"]

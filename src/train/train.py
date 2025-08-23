@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import json
 import math
 from pathlib import Path
 
@@ -46,4 +47,33 @@ def read_data(path: str | Path) -> list[tuple[float, float]]:
     return rows
 
 
-__all__ = ["read_data"]
+def gradient_descent(
+    data: list[tuple[float, float]], alpha: float, iterations: int
+) -> tuple[float, float]:
+    """Return coefficients computed via gradient descent.
+
+    ``tmp_theta0`` and ``tmp_theta1`` are calculated before updating the
+    coefficients so that the update is truly simultaneous.
+    """
+
+    theta0 = 0.0
+    theta1 = 0.0
+    m = float(len(data))
+    for _ in range(iterations):
+        dtheta0 = sum((theta0 + theta1 * x) - y for x, y in data) / m
+        dtheta1 = sum(((theta0 + theta1 * x) - y) * x for x, y in data) / m
+        tmp_theta0 = alpha * dtheta0
+        tmp_theta1 = alpha * dtheta1
+        theta0 -= tmp_theta0
+        theta1 -= tmp_theta1
+    return theta0, theta1
+
+
+def save_theta(theta0: float, theta1: float, path: str | Path) -> None:
+    """Write ``theta0`` and ``theta1`` as JSON to ``path``."""
+
+    theta_path = Path(path)
+    theta_path.write_text(json.dumps({"theta0": theta0, "theta1": theta1}))
+
+
+__all__ = ["read_data", "gradient_descent", "save_theta"]

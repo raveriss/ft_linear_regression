@@ -67,37 +67,54 @@ def test_train_parser_definition() -> None:
     assert actions["data"].help == "path to training data CSV"
     assert actions["data"].required is True
     assert actions["alpha"].option_strings == ["--alpha"]
-    assert actions["alpha"].help == "learning rate"
-    assert actions["alpha"].required is True
+    help_text = actions["alpha"].help or ""
+    assert help_text.startswith("learning rate")
+    assert actions["alpha"].required is False
+    assert actions["alpha"].default == pytest.approx(0.1)
     assert actions["iters"].option_strings == ["--iters"]
     assert actions["iters"].help == "number of iterations"
-    assert actions["iters"].required is True
+    assert actions["iters"].required is False
+    assert actions["iters"].default == 1000
     assert actions["theta"].option_strings == ["--theta"]
     assert actions["theta"].help == "path to theta JSON"
     assert actions["theta"].required is False
 
-    args = parser.parse_args(
-        [
-            "--data",
-            "data.csv",
-            "--alpha",
-            "0.1",
-            "--iters",
-            "10",
-        ]
-    )
+    args = parser.parse_args(["--data", "data.csv"])
     assert args.data == "data.csv"
-    assert isinstance(args.alpha, float) and args.alpha == pytest.approx(0.1)
-    assert isinstance(args.iters, int) and args.iters == 10
+    assert args.alpha == pytest.approx(0.1)
+    assert args.iters == 1000
     assert args.theta == "theta.json"
 
+    args2 = parser.parse_args(
+        ["--data", "d", "--alpha", "0.5", "--iters", "10", "--theta", "t.json"]
+    )
+    assert args2.alpha == pytest.approx(0.5)
+    assert args2.iters == 10
+    assert args2.theta == "t.json"
+
+    # boundary value should be accepted
+    args3 = parser.parse_args(["--data", "d", "--alpha", "1"])
+    assert args3.alpha == pytest.approx(1.0)
+
     with pytest.raises(SystemExit):
-        parser.parse_args(["--data", "d", "--alpha", "bad", "--iters", "10"])
+        parser.parse_args(["--data", "d", "--alpha", "0"])
     with pytest.raises(SystemExit):
-        parser.parse_args(["--data", "d", "--alpha", "0.1", "--iters", "bad"])
+        parser.parse_args(["--data", "d", "--alpha", "2"])
+    with pytest.raises(SystemExit):
+        parser.parse_args(["--data", "d", "--alpha", "bad"])
+    with pytest.raises(SystemExit):
+        parser.parse_args(["--data", "d", "--iters", "bad"])
     with pytest.raises(SystemExit):
         parser.parse_args(["--alpha", "0.1", "--iters", "10"])
+
+
+def test_alpha_type_error_messages(capsys: pytest.CaptureFixture[str]) -> None:
+    parser = build_train_parser()
     with pytest.raises(SystemExit):
-        parser.parse_args(["--data", "d", "--iters", "10"])
+        parser.parse_args(["--data", "d", "--alpha", "bad"])
+    err = capsys.readouterr().err
+    assert err.strip().endswith("alpha must be a floating point number")
     with pytest.raises(SystemExit):
-        parser.parse_args(["--data", "d", "--alpha", "0.1"])
+        parser.parse_args(["--data", "d", "--alpha", "2"])
+    err = capsys.readouterr().err
+    assert err.strip().endswith("alpha must be in the range (0, 1]")

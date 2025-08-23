@@ -1,0 +1,65 @@
+import sys
+from pathlib import Path
+
+import pytest
+
+sys.path.append(str(Path(__file__).resolve().parents[1] / "src"))
+
+from predict.__main__ import build_parser as build_predict_parser  # noqa: E402
+from train.__main__ import build_parser as build_train_parser  # noqa: E402
+
+
+def test_predict_parser_definition() -> None:
+    parser = build_predict_parser()
+    assert parser.description == "Predict a car price from mileage"
+    km_action = next(a for a in parser._actions if a.dest == "km")
+    theta_action = next(a for a in parser._actions if a.dest == "theta")
+    assert km_action.option_strings == ["--km"]
+    assert km_action.help == "mileage in kilometers"
+    assert theta_action.option_strings == ["--theta"]
+    assert theta_action.help == "path to theta JSON"
+
+    args = parser.parse_args(["--km", "12.5"])
+    assert isinstance(args.km, float)
+    assert args.km == pytest.approx(12.5)
+    assert args.theta == "theta.json"
+
+    args2 = parser.parse_args(["--theta", "file.json"])
+    assert args2.theta == "file.json" and args2.km is None
+
+    with pytest.raises(SystemExit):
+        parser.parse_args(["--km", "oops"])
+
+
+def test_train_parser_definition() -> None:
+    parser = build_train_parser()
+    assert parser.description == "Train the linear regression model"
+    actions = {a.dest: a for a in parser._actions}
+    assert actions["data"].option_strings == ["--data"]
+    assert actions["data"].help == "path to training data CSV"
+    assert actions["alpha"].option_strings == ["--alpha"]
+    assert actions["alpha"].help == "learning rate"
+    assert actions["iters"].option_strings == ["--iters"]
+    assert actions["iters"].help == "number of iterations"
+    assert actions["theta"].option_strings == ["--theta"]
+    assert actions["theta"].help == "path to theta JSON"
+
+    args = parser.parse_args(
+        [
+            "--data",
+            "data.csv",
+            "--alpha",
+            "0.1",
+            "--iters",
+            "10",
+        ]
+    )
+    assert args.data == "data.csv"
+    assert isinstance(args.alpha, float) and args.alpha == pytest.approx(0.1)
+    assert isinstance(args.iters, int) and args.iters == 10
+    assert args.theta == "theta.json"
+
+    with pytest.raises(SystemExit):
+        parser.parse_args(["--data", "d", "--alpha", "bad", "--iters", "10"])
+    with pytest.raises(SystemExit):
+        parser.parse_args(["--data", "d", "--alpha", "0.1", "--iters", "bad"])

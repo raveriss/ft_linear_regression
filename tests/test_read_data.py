@@ -50,7 +50,9 @@ def test_read_data_missing_value(tmp_path: Path) -> None:
 def test_read_data_invalid_header(tmp_path: Path) -> None:
     bad = tmp_path / "bad_header.csv"
     bad.write_text("a,b\n1,2\n")
-    with pytest.raises(ValueError, match=r"^invalid CSV format \(expected columns: km,price\)$"):
+    with pytest.raises(
+        ValueError, match=r"^invalid CSV format \(expected columns: km,price\)$"
+    ):
         read_data(str(bad))
 
 

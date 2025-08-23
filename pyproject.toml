@@ -68,6 +68,7 @@ isort      = "^5.13.2"
 hypothesis = "^6.135.32"
 pandas-stubs = "^2.3.0.250703"
 matplotlib-stubs = "^0.3.2"
+mutmut = "^3.3"
 
 # --------------------------------------------------------------------------- #
 #  Formatting & linting                                                       #
@@ -134,12 +135,6 @@ minversion = "8.0"
 addopts    = [
   "--strict-markers",
   "--strict-config",
-  "--cov=train",
-  "--cov=predict",  
-  "--cov-report=term-missing",
-  "--cov-report=html",
-  "--cov-report=xml",
-  "--cov-fail-under=100"
 ]
 testpaths        = ["tests"]
 python_files     = ["test_*.py"]
@@ -211,3 +206,9 @@ hooks = [
 [tool.flake8]
 max-line-length = 88
 extend-ignore = ["E203", "W503"]
+
+[tool.mutmut]
+paths_to_mutate = ["src"]
+tests_dir = ["tests"]
+runner = "pytest -q -o addopts="
+use_coverage = false

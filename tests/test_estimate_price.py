@@ -5,9 +5,9 @@ import pytest
 
 sys.path.append(str(Path(__file__).resolve().parents[1] / "src"))
 
-import predict.predict  # noqa: F401
-import train.train  # noqa: F401
-from linear_regression import estimate_price
+import predict.predict  # noqa: F401,E402
+import train.train  # noqa: F401,E402
+from linear_regression import estimate_price  # noqa: E402
 
 
 def test_estimate_price_returns_linear_combination() -> None:

@@ -5,11 +5,11 @@ import pytest
 from train.train import read_data
 
 
-def test_read_data_valid() -> None:
-    data_path = Path(__file__).resolve().parents[1] / "data.csv"
-    rows = read_data(str(data_path))
-    assert rows[0] == pytest.approx((240000.0, 3650.0))
-    assert len(rows) > 0
+def test_read_data_valid(tmp_path: Path) -> None:
+    good = tmp_path / "good.csv"
+    good.write_text("km,price\n240000,3650\n")
+    rows = read_data(str(good))
+    assert rows == [(240000.0, 3650.0)]
 
 
 def test_read_data_invalid_value(tmp_path: Path) -> None:

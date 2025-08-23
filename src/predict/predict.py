@@ -34,15 +34,18 @@ def parse_args(argv: list[str] | None = None) -> tuple[float | None, str]:
 
 
 def load_theta(path: str) -> tuple[float, float]:
-    """Return ``(theta0, theta1)`` from ``path`` or zeros if file is missing."""
+    """Return ``(theta0, theta1)`` from ``path``.
+
+    If the file cannot be read or contains invalid JSON, an error message is
+    printed and the program exits with code ``2``.
+    """
 
     theta_path = Path(path)
-    if not theta_path.is_file():
-        return 0.0, 0.0
     try:
         data = json.loads(theta_path.read_text())
     except (OSError, json.JSONDecodeError):
-        return 0.0, 0.0
+        print("ERROR: theta file not found")
+        raise SystemExit(2)
     return float(data.get("theta0", 0.0)), float(data.get("theta1", 0.0))
 
 

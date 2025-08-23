@@ -37,11 +37,18 @@ def read_data(path: str | Path) -> list[tuple[float, float]]:
     """
 
     csv_path = Path(path)
-    with csv_path.open(encoding="utf-8", newline="") as f:  # pragma: no mutate
-        reader = csv.DictReader(f)
-        if reader.fieldnames != ["km", "price"]:
-            raise ValueError("invalid CSV format (expected columns: km,price)")
-        rows = [_parse_row(row, line) for line, row in enumerate(reader, start=2)]
+    try:
+        with csv_path.open(encoding="utf-8", newline="") as f:  # pragma: no mutate
+            reader = csv.DictReader(f)
+            if reader.fieldnames != ["km", "price"]:
+                raise ValueError(
+                    "invalid CSV format (expected columns: km,price)"
+                )
+            rows = [
+                _parse_row(row, line) for line, row in enumerate(reader, start=2)
+            ]
+    except OSError as exc:  # pragma: no cover - simple error propagation
+        raise ValueError(f"data file not found: {csv_path}") from exc
     if not rows:
         raise ValueError("no data rows found")
     return rows

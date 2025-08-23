@@ -75,6 +75,13 @@ mutmut = "^3.3"
 # --------------------------------------------------------------------------- #
 snoop = "^0.6.0"
 icecream = "^2.1.7"
+
+[tool.poetry.group.viz]
+optional = true
+
+[tool.poetry.group.viz.dependencies]
+matplotlib = "^3.10.5"
+
 [tool.black]
 line-length    = 88
 target-version = ["py310"]

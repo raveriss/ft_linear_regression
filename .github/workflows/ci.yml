@@ -154,6 +154,12 @@ jobs:
           name: mutmut-results
           path: mutmut-results.txt
 
+      - name: Fail if surviving mutants
+        run: |
+          if grep -Fq "survived" mutmut-results.txt; then
+            echo "Surviving mutants detected" && exit 1
+          fi
+
   build:
     name: Build Package
     runs-on: ubuntu-latest

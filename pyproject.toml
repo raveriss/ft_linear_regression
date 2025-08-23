@@ -211,4 +211,4 @@ extend-ignore = ["E203", "W503"]
 paths_to_mutate = ["src"]
 tests_dir = ["tests"]
 runner = "pytest -q -o addopts="
-use_coverage = false
+use_coverage = true

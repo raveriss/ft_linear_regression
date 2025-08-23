@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 import argparse
+import json
+from pathlib import Path
+
+from linear_regression import estimatePrice
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -29,4 +33,26 @@ def parse_args(argv: list[str] | None = None) -> tuple[float | None, str]:
     return km, args.theta
 
 
-__all__ = ["build_parser", "parse_args"]
+def load_theta(path: str) -> tuple[float, float]:
+    """Return ``(theta0, theta1)`` from ``path`` or zeros if file is missing."""
+
+    theta_path = Path(path)
+    if not theta_path.is_file():
+        return 0.0, 0.0
+    try:
+        data = json.loads(theta_path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return 0.0, 0.0
+    return float(data.get("theta0", 0.0)), float(data.get("theta1", 0.0))
+
+
+def predict_price(km: float, theta_path: str = "theta.json") -> float:
+    """Predict the car price for ``km`` using coefficients from ``theta_path``."""
+
+    theta0, theta1 = load_theta(theta_path)
+    if theta0 == 0.0 and theta1 == 0.0:
+        return 0.0
+    return estimatePrice(km, theta0, theta1)
+
+
+__all__ = ["build_parser", "parse_args", "load_theta", "predict_price"]

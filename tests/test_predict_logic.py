@@ -13,12 +13,12 @@ def test_load_theta_missing_and_predict(
     with pytest.raises(SystemExit) as exc:
         load_theta(str(theta_path))
     assert exc.value.code == 2
-    assert "ERROR: theta file not found" in capsys.readouterr().out
+    assert capsys.readouterr().out.strip() == "ERROR: theta file not found"
 
     with pytest.raises(SystemExit) as exc2:
         predict_price(123.0, str(theta_path))
     assert exc2.value.code == 2
-    assert "ERROR: theta file not found" in capsys.readouterr().out
+    assert capsys.readouterr().out.strip() == "ERROR: theta file not found"
 
 
 def test_predict_price_with_file(tmp_path: Path) -> None:
@@ -38,7 +38,7 @@ def test_load_theta_invalid_json(
     with pytest.raises(SystemExit) as exc:
         load_theta(str(theta_path))
     assert exc.value.code == 2
-    assert "ERROR: theta file not found" in capsys.readouterr().out
+    assert capsys.readouterr().out.strip() == "ERROR: theta file not found"
 
 
 def test_load_theta_missing_keys(tmp_path: Path) -> None:
@@ -62,6 +62,12 @@ def test_predict_price_single_theta(
     theta_path = tmp_path / "theta.json"
     theta_path.write_text(json.dumps({"theta0": theta0, "theta1": theta1}))
     assert predict_price(km, str(theta_path)) == pytest.approx(expected)
+
+
+def test_predict_price_zero_theta(tmp_path: Path) -> None:
+    theta_path = tmp_path / "theta.json"
+    theta_path.write_text(json.dumps({"theta0": 0.0, "theta1": 0.0}))
+    assert predict_price(10.0, str(theta_path)) == pytest.approx(0.0)
 
 
 def test_predict_price_default_theta_path(

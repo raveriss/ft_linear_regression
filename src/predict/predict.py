@@ -11,9 +11,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="Predict a car price from mileage",
     )
     parser.add_argument("--km", type=float, help="mileage in kilometers")
-    parser.add_argument(
-        "--theta", default="theta.json", help="path to theta JSON"
-    )
+    parser.add_argument("--theta", default="theta.json", help="path to theta JSON")
     return parser
 
 
@@ -32,4 +30,3 @@ def parse_args(argv: list[str] | None = None) -> tuple[float | None, str]:
 
 
 __all__ = ["build_parser", "parse_args"]
-

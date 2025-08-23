@@ -3,7 +3,7 @@
 # pragma: no mutate
 from __future__ import annotations
 
-from .predict import build_parser, parse_args
+from .predict import parse_args
 
 
 def main(argv: list[str] | None = None) -> int:  # pragma: no mutate

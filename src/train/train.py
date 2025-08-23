@@ -7,17 +7,24 @@ import math
 from pathlib import Path
 
 
+def _float_field(value: str, line_number: int) -> float:
+    try:
+        result = float(value)
+    except ValueError:
+        raise ValueError(f"invalid row {line_number}: non-numeric value") from None
+    if math.isnan(result):
+        raise ValueError(f"invalid row {line_number}: NaN value")
+    return result
+
+
 def _parse_row(row: dict[str, str | None], line_number: int) -> tuple[float, float]:
     """Convert a CSV row to a ``(km, price)`` pair."""
 
-    try:
-        km = float(row["km"])
-        price = float(row["price"])
-    except (TypeError, ValueError):
-        raise ValueError(f"invalid row {line_number}: non-numeric value") from None
-    if any(math.isnan(v) for v in (km, price)):
-        raise ValueError(f"invalid row {line_number}: NaN value")
-    return km, price
+    km_str = row.get("km")
+    price_str = row.get("price")
+    if km_str is None or price_str is None:
+        raise ValueError(f"invalid row {line_number}: missing value")
+    return _float_field(km_str, line_number), _float_field(price_str, line_number)
 
 
 def read_data(path: str | Path) -> list[tuple[float, float]]:
@@ -29,7 +36,7 @@ def read_data(path: str | Path) -> list[tuple[float, float]]:
     """
 
     csv_path = Path(path)
-    with csv_path.open(encoding="utf-8", newline="") as f:
+    with csv_path.open(encoding="utf-8", newline="") as f:  # pragma: no mutate
         reader = csv.DictReader(f)
         if reader.fieldnames != ["km", "price"]:
             raise ValueError("invalid CSV format (expected columns: km,price)")

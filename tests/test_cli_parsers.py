@@ -5,7 +5,8 @@ import pytest
 
 sys.path.append(str(Path(__file__).resolve().parents[1] / "src"))
 
-from predict.__main__ import build_parser as build_predict_parser  # noqa: E402
+from predict.predict import build_parser as build_predict_parser  # noqa: E402
+from predict.predict import parse_args as parse_predict_args  # noqa: E402
 from train.__main__ import build_parser as build_train_parser  # noqa: E402
 
 
@@ -29,6 +30,33 @@ def test_predict_parser_definition() -> None:
 
     with pytest.raises(SystemExit):
         parser.parse_args(["--km", "oops"])
+
+
+def test_parse_args_with_explicit_values() -> None:
+    km, theta = parse_predict_args(["--km", "5", "--theta", "file.json"])
+    assert km == pytest.approx(5.0)
+    assert theta == "file.json"
+
+
+def test_parse_args_interactive(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    # Simulate running without CLI arguments and with invalid then valid input
+    monkeypatch.setattr(sys, "argv", ["predict"])
+    inputs = iter(["bad", "42"])
+    prompts: list[str] = []
+
+    def fake_input(prompt: str) -> str:
+        prompts.append(prompt)
+        return next(inputs)
+
+    monkeypatch.setattr("builtins.input", fake_input)
+    km, theta = parse_predict_args()
+    out = capsys.readouterr().out
+    assert prompts == ["Enter mileage: ", "Enter mileage: "]
+    assert out == "Invalid mileage. Please enter a number.\n"
+    assert km == pytest.approx(42.0)
+    assert theta == "theta.json"
 
 
 def test_train_parser_definition() -> None:

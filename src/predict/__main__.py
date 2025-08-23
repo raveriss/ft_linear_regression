@@ -3,26 +3,12 @@
 # pragma: no mutate
 from __future__ import annotations
 
-import argparse
-
-
-def build_parser() -> argparse.ArgumentParser:  # pragma: no mutate
-    """Return an argument parser for the prediction command."""
-    parser = argparse.ArgumentParser(
-        description="Predict a car price from mileage"
-    )  # pragma: no mutate
-    parser.add_argument(
-        "--km", type=float, help="mileage in kilometers"
-    )  # pragma: no mutate
-    parser.add_argument(
-        "--theta", help="path to theta JSON", default="theta.json"
-    )  # pragma: no mutate
-    return parser  # pragma: no mutate
+from .predict import parse_args
 
 
 def main(argv: list[str] | None = None) -> int:  # pragma: no mutate
     """Parse arguments and run the prediction stub."""
-    _ = build_parser().parse_args(argv)  # pragma: no mutate
+    _km, _theta = parse_args(argv)
     print("prediction routine not yet implemented")  # pragma: no mutate
     return 0  # pragma: no mutate
 

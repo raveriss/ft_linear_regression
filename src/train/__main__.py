@@ -74,4 +74,3 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no mutate
 
 if __name__ == "__main__":  # pragma: no cover - module glue
     raise SystemExit(main())  # pragma: no mutate
-

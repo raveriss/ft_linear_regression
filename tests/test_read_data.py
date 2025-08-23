@@ -65,7 +65,5 @@ def test_read_data_no_rows(tmp_path: Path) -> None:
 
 def test_read_data_missing_file(tmp_path: Path) -> None:
     missing = tmp_path / "missing.csv"
-    with pytest.raises(
-        ValueError, match=f"^data file not found: {missing}$"
-    ):
+    with pytest.raises(ValueError, match=f"^data file not found: {missing}$"):
         read_data(str(missing))

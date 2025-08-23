@@ -65,12 +65,16 @@ def test_train_parser_definition() -> None:
     actions = {a.dest: a for a in parser._actions}
     assert actions["data"].option_strings == ["--data"]
     assert actions["data"].help == "path to training data CSV"
+    assert actions["data"].required is True
     assert actions["alpha"].option_strings == ["--alpha"]
     assert actions["alpha"].help == "learning rate"
+    assert actions["alpha"].required is True
     assert actions["iters"].option_strings == ["--iters"]
     assert actions["iters"].help == "number of iterations"
+    assert actions["iters"].required is True
     assert actions["theta"].option_strings == ["--theta"]
     assert actions["theta"].help == "path to theta JSON"
+    assert actions["theta"].required is False
 
     args = parser.parse_args(
         [
@@ -91,3 +95,9 @@ def test_train_parser_definition() -> None:
         parser.parse_args(["--data", "d", "--alpha", "bad", "--iters", "10"])
     with pytest.raises(SystemExit):
         parser.parse_args(["--data", "d", "--alpha", "0.1", "--iters", "bad"])
+    with pytest.raises(SystemExit):
+        parser.parse_args(["--alpha", "0.1", "--iters", "10"])
+    with pytest.raises(SystemExit):
+        parser.parse_args(["--data", "d", "--iters", "10"])
+    with pytest.raises(SystemExit):
+        parser.parse_args(["--data", "d", "--alpha", "0.1"])

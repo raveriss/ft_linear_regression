@@ -8,9 +8,13 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 name    = "ft_linear_regression"
 version = "0.1.1"
-packages = [
-  { include = "predict", from = "src" },
-  { include = "train", from = "src" }
+# Install all modules under ``src`` so that the CLI entry points can import
+# shared helpers like ``linear_regression`` without tweaking ``PYTHONPATH``.
+packages = [{ include = "*", from = "src" }]
+include = [
+  "src/linear_regression.py",
+  "src/metrics.py",
+  "src/viz.py",
 ]
 
 [tool.poetry.dependencies]
@@ -46,8 +50,9 @@ Documentation = "https://github.com/raveriss/ft_linear_regression#readme"
 Homepage      = "https://github.com/raveriss/ft_linear_regression"
 
 [project.scripts]
-train       = "train.cli:main"
-predict = "predict.cli:main"
+train = "train.__main__:main"
+predict = "predict.__main__:main"
+viz = "viz:main"
 
 # --------------------------------------------------------------------------- #
 #  Poetry-specific dev dependencies                                           #

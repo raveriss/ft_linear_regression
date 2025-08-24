@@ -68,10 +68,10 @@ pip install -r requirements.txt
 ### ▶️ Lancement
 ```bash
 # Entraînement
-python3 -m src.train --data data.csv --alpha 1e-7 --iters 100000 --theta theta.json
+poetry run train --data data.csv --alpha 0.1 --iters 1000 --theta theta.json
 
 # Prédiction
-python3 -m src.predict --km 85000 --theta theta.json
+poetry run predict --km 85000 --theta theta.json
 ```
 
 ## 🧪 Procédure de soutenance (E2E “défense-proof”)
@@ -89,7 +89,7 @@ python3 -m src.predict --km 50000 --theta theta.json
 **Étape B :** entraînement du modèle
 
 ```bash
-python3 -m src.train --data data.csv --alpha 1e-7 --iters 100000 --theta theta.json
+poetry run train --data data.csv --alpha 0.1 --iters 1000 --theta theta.json
 ```
 ### → Apprentissage des paramètres θ₀ et θ₁, sauvegardés dans theta.json
 

@@ -14,16 +14,14 @@ def test_load_theta_missing_and_predict(
         load_theta(str(theta_path))
     assert exc.value.code == 2
     assert (
-        capsys.readouterr().out.strip()
-        == f"ERROR: theta file not found: {theta_path}"
+        capsys.readouterr().out.strip() == f"ERROR: theta file not found: {theta_path}"
     )
 
     with pytest.raises(SystemExit) as exc2:
         predict_price(123.0, str(theta_path))
     assert exc2.value.code == 2
     assert (
-        capsys.readouterr().out.strip()
-        == f"ERROR: theta file not found: {theta_path}"
+        capsys.readouterr().out.strip() == f"ERROR: theta file not found: {theta_path}"
     )
 
 
@@ -45,8 +43,7 @@ def test_load_theta_invalid_json(
         load_theta(str(theta_path))
     assert exc.value.code == 2
     assert (
-        capsys.readouterr().out.strip()
-        == f"ERROR: theta file not found: {theta_path}"
+        capsys.readouterr().out.strip() == f"ERROR: theta file not found: {theta_path}"
     )
 
 
@@ -123,3 +120,39 @@ def test_predict_price_warns_outside_bounds(
     assert price == pytest.approx(20.0)
     assert "WARNING: mileage 20.0 outside data range [0.0, 10.0]" in out
     assert "WARNING: price 20.0 outside data range [0.0, 10.0]" in out
+
+
+def test_predict_price_no_warning_at_bounds(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    theta_path = tmp_path / "theta.json"
+    theta_path.write_text(
+        json.dumps(
+            {
+                "theta0": 0.0,
+                "theta1": 1.0,
+                "min_km": 0.0,
+                "max_km": 10.0,
+                "min_price": 0.0,
+                "max_price": 10.0,
+            }
+        )
+    )
+    predict_price(0.0, str(theta_path))
+    assert capsys.readouterr().out == ""
+    predict_price(10.0, str(theta_path))
+    assert capsys.readouterr().out == ""
+
+
+def test_predict_price_partial_bounds(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    theta_path = tmp_path / "theta.json"
+    # Only mileage lower bound provided
+    theta_path.write_text(json.dumps({"theta0": 0.0, "theta1": 1.0, "min_km": 0.0}))
+    predict_price(20.0, str(theta_path))
+    assert capsys.readouterr().out == ""
+    # Only price lower bound provided
+    theta_path.write_text(json.dumps({"theta0": 0.0, "theta1": 1.0, "min_price": 0.0}))
+    predict_price(20.0, str(theta_path))
+    assert capsys.readouterr().out == ""

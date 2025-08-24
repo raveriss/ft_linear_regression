@@ -33,9 +33,7 @@ def _iters_type(value: str) -> int:
     try:
         iters = int(value)
     except ValueError as exc:  # pragma: no cover - argparse shows the message
-        raise argparse.ArgumentTypeError(
-            "iters must be a positive integer"
-        ) from exc
+        raise argparse.ArgumentTypeError("iters must be a positive integer") from exc
     if iters <= 0:
         raise argparse.ArgumentTypeError("iters must be a positive integer")
     return iters

@@ -74,6 +74,11 @@ poetry run train --data data.csv --alpha 0.1 --iters 1000 --theta theta.json
 poetry run predict --km 85000 --theta theta.json
 ```
 
+> ℹ️ Si la droite rouge affichée par `viz` reste quasiment horizontale, vérifiez
+> le contenu de `theta.json`. Une valeur de `--alpha` trop faible (par exemple
+> `1e-7`) laisse les coefficients proches de zéro. Utilisez `--alpha 0.1` (ou
+> `0.01`) et suffisamment d'itérations pour obtenir une pente négative réaliste.
+
 ## 🧪 Procédure de soutenance (E2E “défense-proof”)
 
 Scénario officiel à démontrer en soutenance, en trois étapes **obligatoires** :

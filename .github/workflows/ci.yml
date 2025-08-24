@@ -11,6 +11,7 @@ on:
 env:
   PYTHON_VERSION: "3.10"
   POETRY_HOME: "${{ github.workspace }}/.poetry"
+  VULTURE_ARGS: "src .vulture-whitelist.py --min-confidence=80 --exclude=\"**/tests/**,**/docs/**,.venv,build,dist\" --verbose"
 
 jobs:
   pre-commit:
@@ -140,10 +141,74 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
 
+      - name: Run mutation tests
+        run: poetry run mutmut run
+
+      - name: Show mutation results
+        run: |
+          poetry run mutmut results > mutmut-results.txt
+          cat mutmut-results.txt
+
+      - name: Upload mutation report
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutmut-results
+          path: mutmut-results.txt
+
+  vulture:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Cache virtualenv
+        id: cache-poetry
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies (cache miss)
+        if: steps.cache-poetry.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --with dev --no-root
+
+      - name: Install project in editable mode
+        run: poetry install --no-interaction --with dev
+
+      - name: Run Vulture
+        run: |
+          poetry run vulture $VULTURE_ARGS > vulture-report.txt || true
+          if [ -s vulture-report.txt ]; then
+            echo "Dead code detected" >> "$GITHUB_STEP_SUMMARY"
+            head -n 10 vulture-report.txt >> "$GITHUB_STEP_SUMMARY"
+            cat vulture-report.txt
+            exit 1
+          else
+            echo "No dead code found" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload Vulture report
+        uses: actions/upload-artifact@v4
+        with:
+          name: vulture-report
+          path: vulture-report.txt
+
   build:
     name: Build Package
     runs-on: ubuntu-latest
-    needs: [static-analysis, tests]
+    needs: [static-analysis, tests, vulture]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

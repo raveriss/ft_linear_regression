@@ -28,6 +28,16 @@ repos:
       - id: bandit
         pass_filenames: false
         args: ["-r", "src"]
+  - repo: https://github.com/jendrikseipp/vulture
+    rev: v2.14
+    hooks:
+      - id: vulture
+        args: [
+          "src",
+          ".vulture-whitelist.py",
+          "--min-confidence=80",
+          "--exclude=**/tests/**,**/docs/**,.venv,build,dist",
+        ]
   - repo: local
     hooks:
       - id: radon

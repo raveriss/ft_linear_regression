@@ -19,6 +19,21 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _prompt_mileage() -> float:
+    """Interactively request a valid mileage from the user."""
+
+    while True:
+        try:
+            km = float(input("Enter mileage: "))
+        except ValueError:
+            print("Invalid mileage. Please enter a number.")
+            continue
+        if km < 0:
+            print("Invalid mileage. Must be a non-negative number.")
+            continue
+        return km
+
+
 def parse_args(argv: list[str] | None = None) -> tuple[float, str]:
     """Parse CLI arguments and prompt for mileage if needed."""
 
@@ -28,16 +43,7 @@ def parse_args(argv: list[str] | None = None) -> tuple[float, str]:
         print("ERROR: invalid mileage (must be a non-negative number)")
         raise SystemExit(2)
     if km is None and argv is None:
-        while True:
-            try:
-                km = float(input("Enter mileage: "))
-            except ValueError:
-                print("Invalid mileage. Please enter a number.")
-                continue
-            if km < 0:
-                print("Invalid mileage. Must be a non-negative number.")
-                continue
-            break
+        km = _prompt_mileage()
     if km is None:
         km = 0.0
     return km, args.theta
@@ -54,29 +60,28 @@ def load_theta(
 
     theta_path = Path(path)
     try:
-        data = json.loads(theta_path.read_text())
+        raw = json.loads(theta_path.read_text())
     except (OSError, json.JSONDecodeError):
         print(f"ERROR: theta file not found: {theta_path}")
         raise SystemExit(2)
     try:
-        theta0 = float(data.get("theta0", 0.0))
-        theta1 = float(data.get("theta1", 0.0))
-        min_km = data.get("min_km")
-        max_km = data.get("max_km")
-        min_price = data.get("min_price")
-        max_price = data.get("max_price")
-        if min_km is not None:
-            min_km = float(min_km)
-        if max_km is not None:
-            max_km = float(max_km)
-        if min_price is not None:
-            min_price = float(min_price)
-        if max_price is not None:
-            max_price = float(max_price)
+        theta0 = float(raw.get("theta0", 0.0))
+        theta1 = float(raw.get("theta1", 0.0))
+        bounds: dict[str, float | None] = {}
+        for key in ("min_km", "max_km", "min_price", "max_price"):
+            value = raw.get(key)
+            bounds[key] = float(value) if value is not None else None
     except (TypeError, ValueError):
         print(f"ERROR: invalid theta values in {theta_path}")
         raise SystemExit(2)
-    return theta0, theta1, min_km, max_km, min_price, max_price
+    return (
+        theta0,
+        theta1,
+        bounds["min_km"],
+        bounds["max_km"],
+        bounds["min_price"],
+        bounds["max_price"],
+    )
 
 
 def predict_price(km: float, theta_path: str = "theta.json") -> float:
@@ -93,20 +98,14 @@ def predict_price(km: float, theta_path: str = "theta.json") -> float:
     if theta0 == 0.0 and theta1 == 0.0:
         return 0.0
     price = estimatePrice(km, theta0, theta1)
-    if (
-        min_km is not None
-        and max_km is not None
-        and not (min_km <= km <= max_km)
-    ):
+    if min_km is not None and max_km is not None and not (min_km <= km <= max_km):
         print(f"WARNING: mileage {km} outside data range [{min_km}, {max_km}]")
     if (
         min_price is not None
         and max_price is not None
         and not (min_price <= price <= max_price)
     ):
-        print(
-            f"WARNING: price {price} outside data range [{min_price}, {max_price}]"
-        )
+        print(f"WARNING: price {price} outside data range [{min_price}, {max_price}]")
     return price
 
 

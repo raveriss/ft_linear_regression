@@ -90,16 +90,17 @@ def save_theta(
     """Write training results and data bounds as JSON to ``path``."""
 
     theta_path = Path(path)
-    data = {"theta0": theta0, "theta1": theta1}
-    if None not in (min_km, max_km, min_price, max_price):
-        data.update(
-            {
-                "min_km": min_km,
-                "max_km": max_km,
-                "min_price": min_price,
-                "max_price": max_price,
-            }
-        )
+    data: dict[str, float] = {"theta0": float(theta0), "theta1": float(theta1)}
+    bounds: dict[str, float] = {}
+    for key, value in [
+        ("min_km", min_km),
+        ("max_km", max_km),
+        ("min_price", min_price),
+        ("max_price", max_price),
+    ]:
+        if value is not None:
+            bounds[key] = float(value)
+    data.update(bounds)
     theta_path.write_text(json.dumps(data))
 
 

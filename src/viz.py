@@ -44,7 +44,7 @@ def main(argv: list[str] | None = None) -> None:
 
     args = _build_parser().parse_args(argv)
     data = read_data(Path(args.data))
-    theta0, theta1 = load_theta(args.theta)
+    theta0, theta1, *_ = load_theta(args.theta)
 
     xs = [x for x, _ in data]
     ys = [y for _, y in data]

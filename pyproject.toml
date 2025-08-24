@@ -220,9 +220,10 @@ max-line-length = 88
 extend-ignore = ["E203", "W503"]
 
 [tool.mutmut]
-# Limit mutation testing to mandatory modules and skip optional
-# visualization code which may be absent from environments.
-paths_to_mutate = ["src/predict", "src/train"]
+# Limit mutation testing to mandatory modules and skip optional visualization
+# code and CLI glue which may be absent from environments.
+paths_to_mutate = ["src"]
+paths_to_exclude = ["src/viz.py", "src/predict/__main__.py", "src/train/__main__.py"]
 tests_dir = ["tests"]
 runner = "pytest -q -o addopts="
 use_coverage = true

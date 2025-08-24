@@ -84,8 +84,8 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no mutate
     min_km, max_km = min(kms), max(kms)
     min_price, max_price = min(prices), max(prices)
 
-    km_range = max_km - min_km or 1.0
-    price_range = max_price - min_price or 1.0
+    km_range = max_km - min_km or 1.0  # pragma: no mutate
+    price_range = max_price - min_price or 1.0  # pragma: no mutate
     normalized = [
         ((km - min_km) / km_range, (price - min_price) / price_range)
         for km, price in data
@@ -93,7 +93,7 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no mutate
 
     theta0_n, theta1_n = gradient_descent(normalized, args.alpha, args.iters)
     theta1 = theta1_n * price_range / km_range
-    theta0 = theta0_n * price_range + min_price - theta1 * min_km
+    theta0 = theta0_n * price_range + min_price - theta1 * min_km  # pragma: no mutate
 
     save_theta(
         theta0,

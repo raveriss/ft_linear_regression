@@ -1,4 +1,4 @@
-VULTURE_ARGS=src .vulture-whitelist.py --min-confidence=80 --exclude="**/tests/**,**/docs/**,.venv,build,dist" --verbose
+VULTURE_ARGS=src .vulture-whitelist.py --min-confidence=80 --exclude="**/tests/**,**/docs/**,.venv,build,dist" --make-whitelist
 
 .PHONY: vulture
 vulture:

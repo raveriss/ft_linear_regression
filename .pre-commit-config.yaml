@@ -37,6 +37,7 @@ repos:
           ".vulture-whitelist.py",
           "--min-confidence=80",
           "--exclude=**/tests/**,**/docs/**,.venv,build,dist",
+          "--make-whitelist",
         ]
   - repo: local
     hooks:

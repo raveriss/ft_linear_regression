@@ -32,6 +32,10 @@ def test_train_main_runs(tmp_path: Path) -> None:
     result = json.loads(theta.read_text())
     assert result["theta0"] == pytest.approx(0.1)
     assert result["theta1"] == pytest.approx(0.1)
+    assert result["min_km"] == pytest.approx(1.0)
+    assert result["max_km"] == pytest.approx(1.0)
+    assert result["min_price"] == pytest.approx(1.0)
+    assert result["max_price"] == pytest.approx(1.0)
 
 
 def test_predict_main_runs(capsys: pytest.CaptureFixture[str]) -> None:

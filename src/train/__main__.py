@@ -27,6 +27,18 @@ def _alpha_type(value: str) -> float:
     return alpha
 
 
+def _iters_type(value: str) -> int:
+    """Return ``value`` as a positive integer."""
+
+    try:
+        iters = int(value)
+    except ValueError as exc:  # pragma: no cover - argparse shows the message
+        raise argparse.ArgumentTypeError("iters must be a positive integer") from exc
+    if iters <= 0:
+        raise argparse.ArgumentTypeError("iters must be a positive integer")
+    return iters
+
+
 def build_parser() -> argparse.ArgumentParser:  # pragma: no mutate
     """Return an argument parser for the training command."""
 
@@ -46,7 +58,7 @@ def build_parser() -> argparse.ArgumentParser:  # pragma: no mutate
     )  # pragma: no mutate
     parser.add_argument(
         "--iters",
-        type=int,
+        type=_iters_type,
         default=1000,
         help="number of iterations",
     )  # pragma: no mutate
@@ -68,7 +80,16 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no mutate
         print(f"ERROR: {exc}")
         return 2
     theta0, theta1 = gradient_descent(data, args.alpha, args.iters)
-    save_theta(theta0, theta1, args.theta)
+    kms, prices = zip(*data)
+    save_theta(
+        theta0,
+        theta1,
+        args.theta,
+        min(kms),
+        max(kms),
+        min(prices),
+        max(prices),
+    )
     return 0
 
 

@@ -12,16 +12,21 @@ def test_predict_then_train(tmp_path: Path) -> None:
     """Run predict and train commands sequentially and verify their outputs."""
 
     theta_path = tmp_path / "theta.json"
-    data_path = Path("data.csv")
 
     project_root = Path(__file__).resolve().parent.parent
-    env = {
-        k: v
-        for k, v in os.environ.items()
-        if not k.startswith("MUTMUT_")
-        and k not in {"PYTHONPATH", "PYTHONSTARTUP", "PYTHONHOME"}
-    }
-    env["PYTHONPATH"] = os.pathsep.join([str(project_root), str(project_root / "src")])
+    repo_root = project_root.parent if project_root.name == "mutants" else project_root
+    data_path = repo_root / "data.csv"
+
+    env = {k: v for k, v in os.environ.items() if not k.startswith("MUTMUT_")}
+    original_path = env.get("PYTHONPATH", "")
+    cleaned = [
+        p
+        for p in original_path.split(os.pathsep)
+        if "mutants" not in p and ".mutmut-cache" not in p and p
+    ]
+    env["PYTHONPATH"] = os.pathsep.join(
+        [str(repo_root), str(repo_root / "src"), *cleaned]
+    )
 
     result_predict = subprocess.run(
         [
@@ -36,6 +41,7 @@ def test_predict_then_train(tmp_path: Path) -> None:
         capture_output=True,
         text=True,
         env=env,
+        cwd=str(repo_root),
     )
     assert result_predict.returncode == 0
     assert "prediction routine not yet implemented" in result_predict.stdout
@@ -57,6 +63,7 @@ def test_predict_then_train(tmp_path: Path) -> None:
         capture_output=True,
         text=True,
         env=env,
+        cwd=str(repo_root),
     )
     assert result_train.returncode == 0
     assert result_train.stdout == ""
@@ -75,6 +82,7 @@ def test_predict_then_train(tmp_path: Path) -> None:
         capture_output=True,
         text=True,
         env=env,
+        cwd=str(repo_root),
     )
     assert result_predict_after.returncode == 0
     assert "prediction routine not yet implemented" in result_predict_after.stdout

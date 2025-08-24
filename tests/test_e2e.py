@@ -14,9 +14,14 @@ def test_predict_then_train(tmp_path: Path) -> None:
     theta_path = tmp_path / "theta.json"
     data_path = Path("data.csv")
 
-    env = {k: v for k, v in os.environ.items() if not k.startswith("MUTMUT_")}
+    project_root = Path(__file__).resolve().parent.parent
+    env = os.environ.copy()
+    original_path = env.get("PYTHONPATH", "")
+    cleaned = [
+        p for p in original_path.split(os.pathsep) if ".mutmut-cache" not in p and p
+    ]
     env["PYTHONPATH"] = os.pathsep.join(
-        [str(Path.cwd() / "src"), env.get("PYTHONPATH", "")]
+        [str(project_root), str(project_root / "src"), *cleaned]
     )
 
     result_predict = subprocess.run(

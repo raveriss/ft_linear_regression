@@ -15,7 +15,7 @@ def test_predict_then_train(tmp_path: Path) -> None:
     data_path = Path("data.csv")
 
     project_root = Path(__file__).resolve().parent.parent
-    env = os.environ.copy()
+    env = {k: v for k, v in os.environ.items() if not k.startswith("MUTMUT_")}
     original_path = env.get("PYTHONPATH", "")
     cleaned = [
         p for p in original_path.split(os.pathsep) if ".mutmut-cache" not in p and p

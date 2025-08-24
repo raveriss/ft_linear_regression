@@ -1,9 +1,10 @@
-from pathlib import Path
 import json
+from pathlib import Path
+
 import pytest
 
-from train.train import save_theta
 from predict.predict import load_theta
+from train.train import save_theta
 
 
 def test_save_and_load_theta(tmp_path: Path) -> None:
@@ -14,15 +15,16 @@ def test_save_and_load_theta(tmp_path: Path) -> None:
     assert theta1 == pytest.approx(2.0)
 
 
-def test_load_theta_invalid_json(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+def test_load_theta_invalid_json(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
     theta_path = tmp_path / "theta.json"
     theta_path.write_text("not json")
     with pytest.raises(SystemExit) as exc:
         load_theta(str(theta_path))
     assert exc.value.code == 2
     assert (
-        capsys.readouterr().out.strip()
-        == f"ERROR: theta file not found: {theta_path}"
+        capsys.readouterr().out.strip() == f"ERROR: theta file not found: {theta_path}"
     )
 
 

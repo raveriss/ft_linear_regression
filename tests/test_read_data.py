@@ -40,6 +40,20 @@ def test_read_data_nan_km(tmp_path: Path) -> None:
         read_data(str(bad))
 
 
+def test_read_data_negative_km(tmp_path: Path) -> None:
+    bad = tmp_path / "neg_km.csv"
+    bad.write_text("km,price\n-1,1000\n")
+    with pytest.raises(ValueError, match="invalid row 2: negative km"):
+        read_data(str(bad))
+
+
+def test_read_data_negative_price(tmp_path: Path) -> None:
+    bad = tmp_path / "neg_price.csv"
+    bad.write_text("km,price\n1,-5\n")
+    with pytest.raises(ValueError, match="invalid row 2: negative price"):
+        read_data(str(bad))
+
+
 def test_read_data_missing_value(tmp_path: Path) -> None:
     bad = tmp_path / "missing.csv"
     bad.write_text("km,price\n1000\n")

@@ -32,10 +32,20 @@ def test_predict_parser_definition() -> None:
         parser.parse_args(["--km", "oops"])
 
 
-def test_parse_args_with_explicit_values() -> None:
+def test_parse_args_with_explicit_values(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
     km, theta = parse_predict_args(["--km", "5", "--theta", "file.json"])
     assert km == pytest.approx(5.0)
     assert theta == "file.json"
+    capsys.readouterr()
+    with pytest.raises(SystemExit) as exc:
+        parse_predict_args(["--km", "-1"])
+    assert exc.value.code == 2
+    assert (
+        capsys.readouterr().out.strip()
+        == "ERROR: invalid mileage (must be a non-negative number)"
+    )
 
 
 def test_parse_args_interactive(
@@ -43,7 +53,7 @@ def test_parse_args_interactive(
 ) -> None:
     # Simulate running without CLI arguments and with invalid then valid input
     monkeypatch.setattr(sys, "argv", ["predict"])
-    inputs = iter(["bad", "42"])
+    inputs = iter(["bad", "-1", "42"])
     prompts: list[str] = []
 
     def fake_input(prompt: str) -> str:
@@ -53,8 +63,11 @@ def test_parse_args_interactive(
     monkeypatch.setattr("builtins.input", fake_input)
     km, theta = parse_predict_args()
     out = capsys.readouterr().out
-    assert prompts == ["Enter mileage: ", "Enter mileage: "]
-    assert out == "Invalid mileage. Please enter a number.\n"
+    assert prompts == ["Enter mileage: ", "Enter mileage: ", "Enter mileage: "]
+    assert out == (
+        "Invalid mileage. Please enter a number.\n"
+        "Invalid mileage. Must be a non-negative number.\n"
+    )
     assert km == pytest.approx(42.0)
     assert theta == "theta.json"
 
@@ -104,6 +117,10 @@ def test_train_parser_definition() -> None:
         parser.parse_args(["--data", "d", "--alpha", "bad"])
     with pytest.raises(SystemExit):
         parser.parse_args(["--data", "d", "--iters", "bad"])
+    with pytest.raises(SystemExit):
+        parser.parse_args(["--data", "d", "--iters", "0"])
+    with pytest.raises(SystemExit):
+        parser.parse_args(["--data", "d", "--iters", "-1"])
     with pytest.raises(SystemExit):
         parser.parse_args(["--alpha", "0.1", "--iters", "10"])
 

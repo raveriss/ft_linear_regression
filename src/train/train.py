@@ -25,7 +25,13 @@ def _parse_row(row: dict[str, str | None], line_number: int) -> tuple[float, flo
     price_str = row.get("price")
     if km_str is None or price_str is None:
         raise ValueError(f"invalid row {line_number}: missing value")
-    return _float_field(km_str, line_number), _float_field(price_str, line_number)
+    km = _float_field(km_str, line_number)
+    price = _float_field(price_str, line_number)
+    if km < 0:
+        raise ValueError(f"invalid row {line_number}: negative km")
+    if price < 0:
+        raise ValueError(f"invalid row {line_number}: negative price")
+    return km, price
 
 
 def read_data(path: str | Path) -> list[tuple[float, float]]:
@@ -72,11 +78,29 @@ def gradient_descent(
     return theta0, theta1
 
 
-def save_theta(theta0: float, theta1: float, path: str | Path) -> None:
-    """Write ``theta0`` and ``theta1`` as JSON to ``path``."""
+def save_theta(
+    theta0: float,
+    theta1: float,
+    path: str | Path,
+    min_km: float | None = None,
+    max_km: float | None = None,
+    min_price: float | None = None,
+    max_price: float | None = None,
+) -> None:
+    """Write training results and data bounds as JSON to ``path``."""
 
     theta_path = Path(path)
-    theta_path.write_text(json.dumps({"theta0": theta0, "theta1": theta1}))
+    data = {"theta0": theta0, "theta1": theta1}
+    if None not in (min_km, max_km, min_price, max_price):
+        data.update(
+            {
+                "min_km": min_km,
+                "max_km": max_km,
+                "min_price": min_price,
+                "max_price": max_price,
+            }
+        )
+    theta_path.write_text(json.dumps(data))
 
 
 __all__ = ["read_data", "gradient_descent", "save_theta"]

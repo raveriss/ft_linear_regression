@@ -30,8 +30,8 @@ def test_train_main_runs(tmp_path: Path) -> None:
         == 0
     )
     result = json.loads(theta.read_text())
-    assert result["theta0"] == pytest.approx(0.1)
-    assert result["theta1"] == pytest.approx(0.1)
+    assert result["theta0"] == pytest.approx(1.0)
+    assert result["theta1"] == pytest.approx(0.0)
     assert result["min_km"] == pytest.approx(1.0)
     assert result["max_km"] == pytest.approx(1.0)
     assert result["min_price"] == pytest.approx(1.0)
@@ -49,3 +49,27 @@ def test_train_main_missing_csv(capsys: pytest.CaptureFixture[str]) -> None:
     captured = capsys.readouterr()
     assert code == 2
     assert "ERROR: data file not found: missing.csv" in captured.out
+
+
+def test_train_main_learns_line(tmp_path: Path) -> None:
+    data = tmp_path / "data.csv"
+    data.write_text("km,price\n2,2\n4,4\n")
+    theta = tmp_path / "theta.json"
+    assert (
+        train_main(
+            [
+                "--data",
+                str(data),
+                "--alpha",
+                "0.1",
+                "--iters",
+                "1000",
+                "--theta",
+                str(theta),
+            ]
+        )
+        == 0
+    )
+    result = json.loads(theta.read_text())
+    assert result["theta0"] == pytest.approx(0.0, abs=1e-2)
+    assert result["theta1"] == pytest.approx(1.0, abs=1e-2)

@@ -68,11 +68,16 @@ pip install -r requirements.txt
 ### ▶️ Lancement
 ```bash
 # Entraînement
-python3 -m src.train --data data.csv --alpha 1e-7 --iters 100000 --theta theta.json
+poetry run train --data data.csv --alpha 0.1 --iters 1000 --theta theta.json
 
 # Prédiction
-python3 -m src.predict --km 85000 --theta theta.json
+poetry run predict --km 85000 --theta theta.json
 ```
+
+> ℹ️ Si la droite rouge affichée par `viz` reste quasiment horizontale, vérifiez
+> le contenu de `theta.json`. Une valeur de `--alpha` trop faible (par exemple
+> `1e-7`) laisse les coefficients proches de zéro. Utilisez `--alpha 0.1` (ou
+> `0.01`) et suffisamment d'itérations pour obtenir une pente négative réaliste.
 
 ## 🧪 Procédure de soutenance (E2E “défense-proof”)
 
@@ -89,7 +94,7 @@ python3 -m src.predict --km 50000 --theta theta.json
 **Étape B :** entraînement du modèle
 
 ```bash
-python3 -m src.train --data data.csv --alpha 1e-7 --iters 100000 --theta theta.json
+poetry run train --data data.csv --alpha 0.1 --iters 1000 --theta theta.json
 ```
 ### → Apprentissage des paramètres θ₀ et θ₁, sauvegardés dans theta.json
 

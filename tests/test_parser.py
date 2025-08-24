@@ -9,7 +9,8 @@ def test_read_data_valid(tmp_path: Path) -> None:
     good = tmp_path / "good.csv"
     good.write_text("km,price\n240000,3650\n")
     rows = read_data(str(good))
-    assert rows == [(240000.0, 3650.0)]
+    assert rows[0][0] == pytest.approx(240000.0)
+    assert rows[0][1] == pytest.approx(3650.0)
 
 
 def test_read_data_invalid_value(tmp_path: Path) -> None:

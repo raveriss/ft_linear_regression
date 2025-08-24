@@ -14,7 +14,10 @@ def test_predict_then_train(tmp_path: Path) -> None:
     theta_path = tmp_path / "theta.json"
     data_path = Path("data.csv")
 
-    env = {**os.environ, "PYTHONPATH": str(Path.cwd() / "src")}
+    env = {k: v for k, v in os.environ.items() if not k.startswith("MUTMUT_")}
+    env["PYTHONPATH"] = os.pathsep.join(
+        [str(Path.cwd() / "src"), env.get("PYTHONPATH", "")]
+    )
 
     result_predict = subprocess.run(
         [

@@ -6,7 +6,10 @@ import pytest
 
 pytest.importorskip("matplotlib")
 
-sys.path.append(str(Path(__file__).resolve().parents[1] / "src"))
+ROOT = Path(__file__).resolve().parents[1]
+if not (ROOT / "src/viz.py").exists():
+    ROOT = ROOT.parent
+sys.path.append(str(ROOT / "src"))
 
 import viz  # noqa: E402
 from linear_regression import estimatePrice  # noqa: E402

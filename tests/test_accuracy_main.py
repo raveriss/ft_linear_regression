@@ -4,7 +4,10 @@ from pathlib import Path
 
 import pytest
 
-sys.path.append(str(Path(__file__).resolve().parents[1] / "src"))
+ROOT = Path(__file__).resolve().parents[1]
+if not (ROOT / "src/metrics.py").exists():
+    ROOT = ROOT.parent
+sys.path.append(str(ROOT / "src"))
 
 from metrics import main as accuracy_main  # noqa: E402
 

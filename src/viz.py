@@ -4,15 +4,13 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from typing import Iterable
+from typing import Any, Iterable, cast
 
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt  # type: ignore[import-not-found]
 
 from linear_regression import estimatePrice
 from predict.predict import load_theta
 from train.train import read_data
-
-from typing import Any, cast
 
 def _build_parser() -> argparse.ArgumentParser:
     """Return a command-line argument parser."""
@@ -39,8 +37,6 @@ def _line_points(
     line_y = [estimatePrice(x, theta0, theta1) for x in line_x]
     return line_x, line_y
 
-
-from typing import Any, cast
 
 def main(argv: list[str] | None = None) -> None:
     """Visualize the dataset and the line defined by ``theta0 + theta1 * x``."""

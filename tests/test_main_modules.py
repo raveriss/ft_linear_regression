@@ -38,10 +38,14 @@ def test_train_main_runs(tmp_path: Path) -> None:
     assert result["max_price"] == pytest.approx(1.0)
 
 
-def test_predict_main_runs(capsys: pytest.CaptureFixture[str]) -> None:
-    assert predict_main([]) == 0
+def test_predict_main_runs(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    theta = tmp_path / "theta.json"
+    theta.write_text(json.dumps({"theta0": 0.0, "theta1": 0.0}))
+    assert predict_main(["--theta", str(theta)]) == 0
     captured = capsys.readouterr()
-    assert "not yet implemented" in captured.out.lower()
+    assert captured.out.strip() == "0.0"
 
 
 def test_train_main_missing_csv(capsys: pytest.CaptureFixture[str]) -> None:

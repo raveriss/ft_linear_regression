@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 
 def test_predict_then_train(tmp_path: Path) -> None:
@@ -28,6 +31,8 @@ def test_predict_then_train(tmp_path: Path) -> None:
         [str(repo_root), str(repo_root / "src"), *cleaned]
     )
 
+    theta_path.write_text(json.dumps({"theta0": 0.0, "theta1": 0.0}))
+
     result_predict = subprocess.run(
         [
             sys.executable,
@@ -44,7 +49,7 @@ def test_predict_then_train(tmp_path: Path) -> None:
         cwd=str(repo_root),
     )
     assert result_predict.returncode == 0
-    assert "prediction routine not yet implemented" in result_predict.stdout
+    assert result_predict.stdout.strip() == "0.0"
 
     result_train = subprocess.run(
         [
@@ -85,7 +90,8 @@ def test_predict_then_train(tmp_path: Path) -> None:
         cwd=str(repo_root),
     )
     assert result_predict_after.returncode == 0
-    assert "prediction routine not yet implemented" in result_predict_after.stdout
+    price_after = float(result_predict_after.stdout.strip().splitlines()[-1])
+    assert price_after == pytest.approx(5305.823492473339, rel=1e-2)
 
     theta_path.unlink(missing_ok=True)
     assert not theta_path.exists()

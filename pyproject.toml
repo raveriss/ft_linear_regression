@@ -163,6 +163,7 @@ source = ["src"]
 omit   = [
   "tests/*",
   "ft_linear_regression/__main__.py",
+  "src/viz.py",
 ]
 
 [tool.coverage.report]

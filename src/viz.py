@@ -6,11 +6,12 @@ import argparse
 from pathlib import Path
 from typing import Any, Iterable, cast
 
-import matplotlib.pyplot as plt  # type: ignore[import-not-found]
+import matplotlib.pyplot as plt
 
 from linear_regression import estimatePrice
 from predict.predict import load_theta
 from train.train import read_data
+
 
 def _build_parser() -> argparse.ArgumentParser:
     """Return a command-line argument parser."""
@@ -64,7 +65,6 @@ def main(argv: list[str] | None = None) -> None:
         plt_any.legend()
 
     plt_any.show()
-
 
 
 if __name__ == "__main__":  # pragma: no cover - convenience script

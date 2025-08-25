@@ -25,7 +25,8 @@ cov:
 	poetry run coverage report --fail-under=100
 
 mut:
-	poetry run mutmut run --paths-to-mutate src --tests-dir tests --runner "pytest -q" --use-coverage --simple-output
+	poetry run mutmut run
+	poetry run mutmut results > mutmut-results.txt
 
 run-train:
 	poetry run train --data data.csv --alpha 0.1 --iters 1000 --theta theta.json

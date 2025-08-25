@@ -38,14 +38,20 @@ def test_train_main_runs(tmp_path: Path) -> None:
     assert result["max_price"] == pytest.approx(1.0)
 
 
-def test_predict_main_runs(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_predict_main_runs(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     theta = tmp_path / "theta.json"
-    theta.write_text(json.dumps({"theta0": 0.0, "theta1": 0.0}))
-    assert predict_main(["--theta", str(theta)]) == 0
+    theta.write_text(json.dumps({"theta0": 1.0, "theta1": 2.0}))
+    assert predict_main(["--km", "3", "--theta", str(theta)]) == 0
     captured = capsys.readouterr()
-    assert captured.out.strip() == "0.0"
+    assert float(captured.out.strip()) == pytest.approx(7.0)
+
+
+def test_predict_main_system_exit_str(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fake_parse_args(_argv: list[str] | None = None) -> tuple[float, str]:
+        raise SystemExit("boom")
+
+    monkeypatch.setattr("predict.__main__.parse_args", fake_parse_args)
+    assert predict_main([]) == 1
 
 
 def test_train_main_missing_csv(capsys: pytest.CaptureFixture[str]) -> None:

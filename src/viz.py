@@ -12,6 +12,7 @@ from linear_regression import estimatePrice
 from predict.predict import load_theta
 from train.train import read_data
 
+from typing import Any, cast
 
 def _build_parser() -> argparse.ArgumentParser:
     """Return a command-line argument parser."""
@@ -39,6 +40,8 @@ def _line_points(
     return line_x, line_y
 
 
+from typing import Any, cast
+
 def main(argv: list[str] | None = None) -> None:
     """Visualize the dataset and the line defined by ``theta0 + theta1 * x``."""
 
@@ -48,15 +51,24 @@ def main(argv: list[str] | None = None) -> None:
 
     xs = [x for x, _ in data]
     ys = [y for _, y in data]
-    plt.scatter(xs, ys, label="data")
+
+    # Matplotlib n’est pas bien typé : on cast "plt" en Any pour ce bloc
+    plt_any = cast(Any, plt)
+    plt_any.scatter(xs, ys, label="data")
 
     line_x, line_y = _line_points(xs, theta0, theta1)
-    plt.plot(line_x, line_y, color="red", label="theta0 + theta1 * x")
+    plt_any.plot(line_x, line_y, color="red", label="theta0 + theta1 * x")
 
-    plt.xlabel("km")
-    plt.ylabel("price")
-    plt.legend()
-    plt.show()  # type: ignore[no-untyped-call]
+    plt_any.xlabel("km")
+    plt_any.ylabel("price")
+
+    ax = plt_any.gca()
+    _, labels = ax.get_legend_handles_labels()  # évite reportUnusedVariable
+    if any(labels):
+        plt_any.legend()
+
+    plt_any.show()
+
 
 
 if __name__ == "__main__":  # pragma: no cover - convenience script

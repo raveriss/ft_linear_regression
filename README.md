@@ -1,4 +1,4 @@
-# ft_linear_regression 🚗📈  
+# ft_linear_regression 
 
 <div align="center">
 
@@ -84,22 +84,22 @@ poetry run predict --km 85000 --theta theta.json
 Scénario officiel à démontrer en soutenance, en trois étapes **obligatoires** :
 
 **Étape A :** prédiction avant tout entraînement  
-### Suppression du fichier de paramètres
+Suppression du fichier de paramètres
 ```bash
 rm -f theta.json
 python3 -m src.predict --km 50000 --theta theta.json
 ```
-### → Résultat attendu : 0 (θ₀=0, θ₁=0 par défaut)
+→ Résultat attendu : 0 (θ₀=0, θ₁=0 par défaut)
 
 **Étape B :** entraînement du modèle
 
 ```bash
 poetry run train --data data.csv --alpha 0.1 --iters 1000 --theta theta.json
 ```
-### → Apprentissage des paramètres θ₀ et θ₁, sauvegardés dans theta.json
+→ Apprentissage des paramètres θ₀ et θ₁, sauvegardés dans theta.json
 
 **Étape C :** prédiction après entraînement
-### → Résultat attendu : prix non nul, cohérent avec la droite apprise (≈ CSV)
+→ Résultat attendu : prix non nul, cohérent avec la droite apprise (≈ CSV)
 ```bash
 python3 -m src.predict --km 50000 --theta theta.json
 ```
@@ -213,7 +213,6 @@ Tests recommandés :
 - Tests CLI : `--help`, erreurs d’options → exit ≠ 0 avec message clair.  
 - Codes retour : 0 succès, ≠0 échec.  
 
-
 ---
 
 ## 🔍 Qualité du code
@@ -223,29 +222,12 @@ Tests recommandés :
 - CI/CD Ubuntu-only (GitHub Actions).  
 - Hooks `pre-commit` pour vérifier format/lint/tests rapides avant commit.  
 
----
-
-## 🤝 Contribuer
-1. Fork le repo.  
-2. Crée une branche (`feat/my-feature`).  
-3. Respecte la convention **Conventional Commits** (`feat:`, `fix:`, `refactor:`, `test:`, `docs:`, etc.).  
-4. Soumets une PR.  
-
----
-
 ## 📚 Documentation liée
 - [`AGENTS.md`](./AGENTS.md) → Blueprint complet CI/CD + checklist défense-proof.  
 - [`ft_linear_regression_checklist_défense-proof.txt`](./ft_linear_regression_checklist_défense-proof.txt) → Qualité tests & couverture.  
 - [`ft_linear_regression_murphy_law.txt`](./ft_linear_regression_murphy_law.txt) → Risques & contre-mesures.  
 - Énoncé officiel : [ft_linear_regression.en.subject.pdf](./ft_linear_regression.en.subject.pdf).  
 - Le bonus est **cloisonné** : il ne doit pas interférer avec le mandatory ni impacter la CI de base.
-
-
----
-
-## 🚀 Release
-- Tags Git + changelog.  
-- (Optionnel) publication PyPI (`ft-linear-regression`).  
 
 ---
 

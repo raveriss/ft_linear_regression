@@ -178,13 +178,12 @@ Predicted price: 7991.88 €
 ---
 
 <h2 id="fichiers-de-configuration">🛠️ Fichiers de configuration</h2>
-- `pyproject.toml` (Poetry, dépendances, lint, type check)  
-- `requirements.txt` (fallback sans Poetry)  
-- `.coveragerc`, `.gitignore`, `Makefile` (raccourcis CI/CD)  
-- **Note** : `theta.json` est listé dans `.gitignore` → *ne jamais le versionner*.  
-- `pyproject.toml` contient un **groupe Poetry optionnel** `[tool.poetry.group.viz]`.  
-  Ce groupe **n’est pas installé** par défaut : il est réservé au **bonus**.
 
+- `pyproject.toml` (Poetry, dépendances, lint, type check)
+  - Groupe optionnel **[tool.poetry.group.viz]** (non installé par défaut, réservé au **bonus**)
+- `requirements.txt` (fallback sans Poetry)
+- `.coveragerc`, `.gitignore`, `Makefile` (raccourcis CI/CD)
+- **Note** : `theta.json` est listé dans `.gitignore` → *ne jamais le versionner*.
 
 ---
 

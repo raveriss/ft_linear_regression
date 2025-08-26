@@ -6,10 +6,16 @@
 #   - Fournir des commandes pratiques pour l’entraînement et la prédiction du modèle
 # ========================================================================================
 
-.PHONY: install lint format type test cov mut train predict reqs install-venv run-train-nopoetry run-predict-nopoetry
+.PHONY: install lint format type test cov mut train predict viz reqs install-venv run-train-nopoetry run-predict-nopoetry
 
 # Utilisation raccourcie de Poetry
 POETRY = poetry run
+
+# Paramètres par défaut (surchargables : make train DATA=... THETA=... ALPHA=... ITERS=...)
+DATA  ?= data.csv
+THETA ?= theta.json
+ALPHA ?= 0.1
+ITERS ?= 1000
 
 # ----------------------------------------------------------------------------------------
 # Installation des dépendances (dev inclus)
@@ -63,11 +69,15 @@ mut:
 
 # Entraînement du modèle : génère le fichier theta.json
 train:
-	$(POETRY) train --data data.csv --alpha 0.1 --iters 1000 --theta theta.json
+	$(POETRY) train --data $(DATA) --alpha $(ALPHA) --iters $(ITERS) --theta $(THETA)
 
 # Prédiction du prix pour une valeur donnée (km)
 predict:
-	$(POETRY) predict --theta theta.json
+	$(POETRY) predict --theta $(THETA)
+
+# Visualisation des données + droite (theta0 + theta1 * x)
+viz:
+	$(POETRY) python -m src.viz --data $(DATA) --theta $(THETA)
 
 # ----------------------------------------------------------------------------------------
 # Version sans Poetry (utilise un venv manuel)
@@ -79,8 +89,8 @@ install-venv:
 
 # Entraînement via venv (sans Poetry)
 run-train-nopoetry:
-	. .venv/bin/activate && python3 -m src.train --data data.csv --alpha 0.1 --iters 1000 --theta theta.json
+	. .venv/bin/activate && python3 -m src.train --data $(DATA) --alpha $(ALPHA) --iters $(ITERS) --theta $(THETA)
 
 # Prédiction via venv (sans Poetry)
 run-predict-nopoetry:
-	. .venv/bin/activate && python3 -m src.predict --km 85000 --theta theta.json
+	. .venv/bin/activate && python3 -m src.predict --km 85000 --theta $(THETA)

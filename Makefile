@@ -6,7 +6,7 @@
 #   - Fournir des commandes pratiques pour l’entraînement et la prédiction du modèle
 # ========================================================================================
 
-.PHONY: install lint format type test cov mut run-train run-predict reqs install-venv run-train-nopoetry run-predict-nopoetry
+.PHONY: install lint format type test cov mut train predict reqs install-venv run-train-nopoetry run-predict-nopoetry
 
 # Utilisation raccourcie de Poetry
 POETRY = poetry run
@@ -62,12 +62,12 @@ mut:
 # ----------------------------------------------------------------------------------------
 
 # Entraînement du modèle : génère le fichier theta.json
-run-train:
+train:
 	$(POETRY) train --data data.csv --alpha 0.1 --iters 1000 --theta theta.json
 
 # Prédiction du prix pour une valeur donnée (km)
-run-predict:
-	$(POETRY) predict --km 85000 --theta theta.json
+predict:
+	$(POETRY) predict --theta theta.json
 
 # ----------------------------------------------------------------------------------------
 # Version sans Poetry (utilise un venv manuel)

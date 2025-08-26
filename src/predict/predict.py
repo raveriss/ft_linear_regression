@@ -54,15 +54,19 @@ def load_theta(
 ) -> tuple[float, float, float | None, float | None, float | None, float | None]:
     """Return training coefficients and data bounds from ``path``.
 
-    If the file cannot be read or contains invalid values, an error message is
-    printed and the program exits with code ``2``.
+    When ``path`` does not exist, default coefficients are returned without
+    raising an error so that predictions before training yield ``0``.  If the
+    file exists but cannot be parsed or contains invalid values, an error
+    message is printed and the program exits with code ``2``.
     """
 
     theta_path = Path(path)
+    if not theta_path.exists():
+        return 0.0, 0.0, None, None, None, None
     try:
         raw = json.loads(theta_path.read_text())
     except (OSError, json.JSONDecodeError):
-        print(f"ERROR: theta file not found: {theta_path}")
+        print(f"ERROR: invalid theta file: {theta_path}")
         raise SystemExit(2)
     try:
         theta0 = float(raw.get("theta0", 0.0))

@@ -10,19 +10,13 @@ def test_load_theta_missing_and_predict(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     theta_path = tmp_path / "theta.json"
-    with pytest.raises(SystemExit) as exc:
-        load_theta(str(theta_path))
-    assert exc.value.code == 2
-    assert (
-        capsys.readouterr().out.strip() == f"ERROR: theta file not found: {theta_path}"
-    )
+    theta0, theta1, *_ = load_theta(str(theta_path))
+    assert (theta0, theta1) == (0.0, 0.0)
+    assert capsys.readouterr().out == ""
 
-    with pytest.raises(SystemExit) as exc2:
-        predict_price(123.0, str(theta_path))
-    assert exc2.value.code == 2
-    assert (
-        capsys.readouterr().out.strip() == f"ERROR: theta file not found: {theta_path}"
-    )
+    price = predict_price(123.0, str(theta_path))
+    assert price == pytest.approx(0.0)
+    assert capsys.readouterr().out == ""
 
 
 def test_predict_price_with_file(tmp_path: Path) -> None:
@@ -43,7 +37,7 @@ def test_load_theta_invalid_json(
         load_theta(str(theta_path))
     assert exc.value.code == 2
     assert (
-        capsys.readouterr().out.strip() == f"ERROR: theta file not found: {theta_path}"
+        capsys.readouterr().out.strip() == f"ERROR: invalid theta file: {theta_path}"
     )
 
 

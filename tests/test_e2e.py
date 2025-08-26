@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 import subprocess
 import sys
@@ -30,8 +29,6 @@ def test_predict_then_train(tmp_path: Path) -> None:
     env["PYTHONPATH"] = os.pathsep.join(
         [str(repo_root), str(repo_root / "src"), *cleaned]
     )
-
-    theta_path.write_text(json.dumps({"theta0": 0.0, "theta1": 0.0}))
 
     result_predict = subprocess.run(
         [

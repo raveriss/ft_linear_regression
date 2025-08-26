@@ -24,7 +24,7 @@ def test_load_theta_invalid_json(
         load_theta(str(theta_path))
     assert exc.value.code == 2
     assert (
-        capsys.readouterr().out.strip() == f"ERROR: theta file not found: {theta_path}"
+        capsys.readouterr().out.strip() == f"ERROR: invalid theta file: {theta_path}"
     )
 
 

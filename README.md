@@ -10,8 +10,25 @@
 [![Typing](https://img.shields.io/badge/mypy-checked-purple.svg)]()
 [![Mutation](https://img.shields.io/badge/mutmut-≥90%25-orange.svg)]() 
 [![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?label=pre--commit)]()
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)]()
+[![Security](https://img.shields.io/badge/security-bandit-green.svg)]()
 
 </div>
+
+---
+## 📑 Table des matières
+- [🚀 Objectif du projet](#-objectif-du-projet)
+- [🧰 Stack technologique](#-stack-technologique)
+- [⚡ Démarrage rapide](#-démarrage-rapide)
+- [🧪 Procédure de soutenance](#-procédure-de-soutenance-e2e-défense-proof)
+- [📦 Utilisation](#-utilisation)
+- [📝 Données](#-données)
+- [🧠 Architecture](#-architecture)
+- [🛠️ Fichiers de configuration](#fichiers-de-configuration)
+- [🧪 Tests](#-tests)
+- [🔍 Qualité du code](#-qualité-du-code)
+- [📚 Documentation liée](#-documentation-liée)
+- [🛡️ Licence](#licence)
 
 ---
 
@@ -120,7 +137,14 @@ poetry run python -m src.viz --data data.csv --theta theta.json
 ---
 
 ## 📦 Utilisation
-- **Mode interactif** : `predict.py` demande un kilométrage si non fourni.  
+- **Mode interactif** : `predict.py` demande un kilométrage si non fourni.
+    ### Exemple concret
+```bash
+$ make predict 
+poetry run predict --theta theta.json
+Enter mileage: 23000
+Predicted price: 7991.88 €
+```
 - **End-to-End** : `predict (0)` → `train` → `predict ≈ prix`.  
 
 ---
@@ -153,7 +177,7 @@ poetry run python -m src.viz --data data.csv --theta theta.json
 
 ---
 
-## 🛠️ Fichiers de configuration
+<h2 id="fichiers-de-configuration">🛠️ Fichiers de configuration</h2>
 - `pyproject.toml` (Poetry, dépendances, lint, type check)  
 - `requirements.txt` (fallback sans Poetry)  
 - `.coveragerc`, `.gitignore`, `Makefile` (raccourcis CI/CD)  
@@ -236,5 +260,5 @@ Tests recommandés :
 
 ---
 
-## 🛡️ Licence
+<h2 id="licence">🛡️ Licence</h2>
 MIT © 2025 — raveriss  

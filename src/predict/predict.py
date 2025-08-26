@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 from linear_regression import estimatePrice
 
@@ -50,13 +50,18 @@ def parse_args(argv: list[str] | None = None) -> tuple[float, str]:
 
 def _read_theta(theta_path: Path) -> dict[str, Any]:
     try:
-        return cast(dict[str, Any], json.loads(theta_path.read_text()))
-    except (OSError, json.JSONDecodeError):
+        raw = json.loads(theta_path.read_text())
+        if not isinstance(raw, dict):
+            raise ValueError
+        return raw
+    except (OSError, json.JSONDecodeError, ValueError):
         print(f"ERROR: invalid theta file: {theta_path}")
         raise SystemExit(2)
 
 
 def _parse_float(value: Any, theta_path: Path) -> float:
+    if theta_path is None:
+        raise AssertionError
     try:
         return float(value)
     except (TypeError, ValueError):
@@ -65,6 +70,8 @@ def _parse_float(value: Any, theta_path: Path) -> float:
 
 
 def _parse_optional_float(value: Any, theta_path: Path) -> float | None:
+    if theta_path is None:
+        raise AssertionError
     return None if value is None else _parse_float(value, theta_path)
 
 

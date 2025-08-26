@@ -113,7 +113,7 @@ Tout écart (crash, valeur incohérente, absence de 0 en étape A, MAJ non simul
 poetry run python -m src.viz --data data.csv --theta theta.json
 ```
 <p align="center">
-  <img src="docs/assets/readme/price-vs-km-regression.svg" alt="Régression linéaire (price vs km)" width="760">
+  <img src="docs/price-vs-km-regression.png" alt="Régression linéaire (price vs km)" width="760">
   <br><em>Nuage de points et droite θ₀ + θ₁·x (après entraînement).</em>
 </p>
 

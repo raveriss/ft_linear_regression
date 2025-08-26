@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from typing import Any, cast
 
 from linear_regression import estimatePrice
 
@@ -39,14 +40,32 @@ def parse_args(argv: list[str] | None = None) -> tuple[float, str]:
 
     args = build_parser().parse_args(argv)
     km = args.km
-    if km is not None and km < 0:
+    if km is None:
+        km = _prompt_mileage() if argv is None else 0.0
+    elif km < 0:
         print("ERROR: invalid mileage (must be a non-negative number)")
         raise SystemExit(2)
-    if km is None and argv is None:
-        km = _prompt_mileage()
-    if km is None:
-        km = 0.0
     return km, args.theta
+
+
+def _read_theta(theta_path: Path) -> dict[str, Any]:
+    try:
+        return cast(dict[str, Any], json.loads(theta_path.read_text()))
+    except (OSError, json.JSONDecodeError):
+        print(f"ERROR: invalid theta file: {theta_path}")
+        raise SystemExit(2)
+
+
+def _parse_float(value: Any, theta_path: Path) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        print(f"ERROR: invalid theta values in {theta_path}")
+        raise SystemExit(2)
+
+
+def _parse_optional_float(value: Any, theta_path: Path) -> float | None:
+    return None if value is None else _parse_float(value, theta_path)
 
 
 def load_theta(
@@ -63,29 +82,24 @@ def load_theta(
     theta_path = Path(path)
     if not theta_path.exists():
         return 0.0, 0.0, None, None, None, None
-    try:
-        raw = json.loads(theta_path.read_text())
-    except (OSError, json.JSONDecodeError):
-        print(f"ERROR: invalid theta file: {theta_path}")
-        raise SystemExit(2)
-    try:
-        theta0 = float(raw.get("theta0", 0.0))
-        theta1 = float(raw.get("theta1", 0.0))
-        bounds: dict[str, float | None] = {}
-        for key in ("min_km", "max_km", "min_price", "max_price"):
-            value = raw.get(key)
-            bounds[key] = float(value) if value is not None else None
-    except (TypeError, ValueError):
-        print(f"ERROR: invalid theta values in {theta_path}")
-        raise SystemExit(2)
-    return (
-        theta0,
-        theta1,
-        bounds["min_km"],
-        bounds["max_km"],
-        bounds["min_price"],
-        bounds["max_price"],
-    )
+    raw = _read_theta(theta_path)
+    theta0 = _parse_float(raw.get("theta0", 0.0), theta_path)
+    theta1 = _parse_float(raw.get("theta1", 0.0), theta_path)
+    min_km = _parse_optional_float(raw.get("min_km"), theta_path)
+    max_km = _parse_optional_float(raw.get("max_km"), theta_path)
+    min_price = _parse_optional_float(raw.get("min_price"), theta_path)
+    max_price = _parse_optional_float(raw.get("max_price"), theta_path)
+    return theta0, theta1, min_km, max_km, min_price, max_price
+
+
+def _warn_outside(
+    value: float, bounds: tuple[float | None, float | None], label: str
+) -> None:
+    min_val, max_val = bounds
+    if min_val is None or max_val is None:
+        return
+    if not (min_val <= value <= max_val):
+        print(f"WARNING: {label} {value} outside data range [{min_val}, {max_val}]")
 
 
 def predict_price(km: float, theta_path: str = "theta.json") -> float:
@@ -102,14 +116,8 @@ def predict_price(km: float, theta_path: str = "theta.json") -> float:
     if theta0 == 0.0 and theta1 == 0.0:
         return 0.0
     price = estimatePrice(km, theta0, theta1)
-    if min_km is not None and max_km is not None and not (min_km <= km <= max_km):
-        print(f"WARNING: mileage {km} outside data range [{min_km}, {max_km}]")
-    if (
-        min_price is not None
-        and max_price is not None
-        and not (min_price <= price <= max_price)
-    ):
-        print(f"WARNING: price {price} outside data range [{min_price}, {max_price}]")
+    _warn_outside(km, (min_km, max_km), "mileage")
+    _warn_outside(price, (min_price, max_price), "price")
     return price
 
 

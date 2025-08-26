@@ -36,9 +36,7 @@ def test_load_theta_invalid_json(
     with pytest.raises(SystemExit) as exc:
         load_theta(str(theta_path))
     assert exc.value.code == 2
-    assert (
-        capsys.readouterr().out.strip() == f"ERROR: invalid theta file: {theta_path}"
-    )
+    assert capsys.readouterr().out.strip() == f"ERROR: invalid theta file: {theta_path}"
 
 
 def test_load_theta_missing_keys(tmp_path: Path) -> None:

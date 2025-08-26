@@ -6,7 +6,7 @@ import argparse
 from pathlib import Path
 from typing import Any, Iterable, cast
 
-import matplotlib.pyplot as plt  # type: ignore[import-not-found]
+import matplotlib.pyplot as plt
 
 from linear_regression import estimatePrice
 from predict.predict import load_theta

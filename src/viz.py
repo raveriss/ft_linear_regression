@@ -19,7 +19,9 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Visualize data and model")
     parser.add_argument("--data", default="data.csv", help="path to CSV data")
     parser.add_argument(
-        "--theta", default="theta.json", help="path to model coefficients",
+        "--theta",
+        default="theta.json",
+        help="path to model coefficients",
     )
     parser.add_argument(
         "--show-eq",

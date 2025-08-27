@@ -28,20 +28,33 @@ def test_line_points() -> None:
 
 def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     plt = pytest.importorskip("matplotlib.pyplot")
-    calls = {"scatter": False, "plot": False, "show": False}
+    calls = {"scatter": False, "plot_rl": None, "show": False}
 
     def fake_scatter(*args: object, **kwargs: object) -> None:
         calls["scatter"] = True
 
-    def fake_plot(*args: object, **kwargs: object) -> None:
-        calls["plot"] = True
-
     def fake_show() -> None:
         calls["show"] = True
 
+    def fake_plot_reg_line(
+        ax: object,
+        xs: object,
+        theta0: float,
+        theta1: float,
+        show_eq: bool,
+    ) -> None:
+        calls["plot_rl"] = show_eq
+
+    class FakeAx:
+        def get_legend_handles_labels(self) -> tuple[list[object], list[str]]:
+            return ([], [])
+
     monkeypatch.setattr(plt, "scatter", fake_scatter)
-    monkeypatch.setattr(plt, "plot", fake_plot)
     monkeypatch.setattr(plt, "show", fake_show)
+    monkeypatch.setattr(plt, "gca", lambda: FakeAx())
+    monkeypatch.setattr(plt, "xlabel", lambda *a, **k: None)
+    monkeypatch.setattr(plt, "ylabel", lambda *a, **k: None)
+    monkeypatch.setattr(viz, "plot_regression_line", fake_plot_reg_line)
 
     data = tmp_path / "data.csv"
     data.write_text("km,price\n0,0\n1,1\n")
@@ -49,7 +62,35 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     theta.write_text(json.dumps({"theta0": 0.0, "theta1": 1.0}))
 
     viz.main(["--data", str(data), "--theta", str(theta)])
+    assert calls == {"scatter": True, "plot_rl": True, "show": True}
 
-    assert calls["scatter"]
+    calls.update({"scatter": False, "plot_rl": None, "show": False})
+    viz.main(
+        ["--data", str(data), "--theta", str(theta), "--no-show-eq"],
+    )
+    assert calls == {"scatter": True, "plot_rl": False, "show": True}
+
+
+def test_plot_regression_line(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: dict[str, object] = {"plot": False, "annotate": None}
+
+    class FakeAx:
+        def plot(self, *_: object, **__: object) -> None:
+            calls["plot"] = True
+
+        def annotate(self, text: str, *_: object, **__: object) -> None:
+            calls["annotate"] = text
+
+        def get_legend_handles_labels(self) -> tuple[list[object], list[str]]:
+            return ([], [])
+
+    ax = FakeAx()
+    xs = [0.0, 1.0]
+    viz.plot_regression_line(ax, xs, 1.234, 2.345, True)
     assert calls["plot"]
-    assert calls["show"]
+    assert calls["annotate"] == "price = 1.23 + 2.35 * km"
+
+    calls.update({"plot": False, "annotate": None})
+    viz.plot_regression_line(ax, xs, 1.0, 2.0, False)
+    assert calls["plot"]
+    assert calls["annotate"] is None

@@ -19,7 +19,15 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Visualize data and model")
     parser.add_argument("--data", default="data.csv", help="path to CSV data")
     parser.add_argument(
-        "--theta", default="theta.json", help="path to model coefficients"
+        "--theta",
+        default="theta.json",
+        help="path to model coefficients",
+    )
+    parser.add_argument(
+        "--show-eq",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="display regression equation",
     )
     return parser
 
@@ -39,6 +47,29 @@ def _line_points(
     return line_x, line_y
 
 
+def plot_regression_line(
+    ax: Any,
+    xs: Iterable[float],
+    theta0: float,
+    theta1: float,
+    show_eq: bool,
+) -> None:
+    """Plot the regression line on ``ax`` and optionally annotate its equation."""
+
+    line_x, line_y = _line_points(xs, theta0, theta1)
+    ax.plot(line_x, line_y, color="red", label="theta0 + theta1 * x")
+
+    if show_eq:
+        equation = f"price = {theta0:.2f} + {theta1:.2f} * km"
+        ax.annotate(
+            equation,
+            xy=(0.05, 0.95),
+            xycoords="axes fraction",
+            ha="left",
+            va="top",
+        )
+
+
 def main(argv: list[str] | None = None) -> None:
     """Visualize the dataset and the line defined by ``theta0 + theta1 * x``."""
 
@@ -52,14 +83,12 @@ def main(argv: list[str] | None = None) -> None:
     # Matplotlib n’est pas bien typé : on cast "plt" en Any pour ce bloc
     plt_any = cast(Any, plt)
     plt_any.scatter(xs, ys, label="data")
-
-    line_x, line_y = _line_points(xs, theta0, theta1)
-    plt_any.plot(line_x, line_y, color="red", label="theta0 + theta1 * x")
+    ax = plt_any.gca()
+    plot_regression_line(ax, xs, theta0, theta1, args.show_eq)
 
     plt_any.xlabel("km")
     plt_any.ylabel("price")
 
-    ax = plt_any.gca()
     _, labels = ax.get_legend_handles_labels()  # évite reportUnusedVariable
     if any(labels):
         plt_any.legend()

@@ -46,7 +46,7 @@ def test_predict_then_train(tmp_path: Path) -> None:
         cwd=str(repo_root),
     )
     assert result_predict.returncode == 0
-    assert result_predict.stdout.strip() == "0.0"
+    assert result_predict.stdout.strip() == "Predicted price: 0.00 €"
 
     result_train = subprocess.run(
         [
@@ -87,7 +87,7 @@ def test_predict_then_train(tmp_path: Path) -> None:
         cwd=str(repo_root),
     )
     assert result_predict_after.returncode == 0
-    price_after = float(result_predict_after.stdout.strip().splitlines()[-1])
+    price_after = float(result_predict_after.stdout.strip().split()[-2])
     assert price_after == pytest.approx(5305.823492473339, rel=1e-2)
 
     theta_path.unlink(missing_ok=True)

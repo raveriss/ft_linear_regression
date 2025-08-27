@@ -13,7 +13,7 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no mutate
         price = predict_price(km, theta)
     except SystemExit as exc:  # pragma: no cover - propagate exit codes
         return exc.code if isinstance(exc.code, int) else 1  # pragma: no cover
-    print(price)
+    print(f"Predicted price: {price:.2f} €")
     return 0
 
 

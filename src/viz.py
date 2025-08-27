@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import math
 from pathlib import Path
-from statistics import NormalDist, median
+from statistics import NormalDist, median, stdev
 from typing import Any, Iterable, Sequence, cast
 
 import matplotlib.pyplot as plt
@@ -51,6 +51,12 @@ def _build_parser() -> argparse.ArgumentParser:
         const=0.95,
         default=None,
         help="display prediction confidence band at given level",
+    )
+    parser.add_argument(
+        "--sigma-k",
+        type=float,
+        default=2.0,
+        help="highlight points where |residual| > k * sigma",
     )
     return parser
 
@@ -147,6 +153,43 @@ def plot_central_tendency(plt_mod: Any, ys: Sequence[float], show_median: bool) 
         plt_mod.axhline(median_y, color="green", linestyle=":", label="median(y)")
 
 
+def split_outliers(
+    data: Sequence[tuple[float, float]],
+    theta0: float,
+    theta1: float,
+    k: float,
+) -> tuple[list[tuple[float, float]], list[tuple[float, float]]]:
+    """Return ``(inliers, outliers)`` based on residual standard deviation."""
+
+    residuals = [y - estimatePrice(x, theta0, theta1) for x, y in data]
+    sigma = stdev(residuals) if len(residuals) > 1 else 0.0
+    inliers = [(x, y) for (x, y), r in zip(data, residuals) if abs(r) <= k * sigma]
+    outliers = [(x, y) for (x, y), r in zip(data, residuals) if abs(r) > k * sigma]
+    return inliers, outliers
+
+
+def plot_points(
+    plt_mod: Any,
+    inliers: Sequence[tuple[float, float]],
+    outliers: Sequence[tuple[float, float]],
+) -> None:
+    """Scatter inliers and outliers with appropriate colors."""
+
+    if inliers:
+        plt_mod.scatter(
+            [x for x, _ in inliers],
+            [y for _, y in inliers],
+            label="data",
+        )
+    if outliers:
+        plt_mod.scatter(
+            [x for x, _ in outliers],
+            [y for _, y in outliers],
+            color="orange",
+            label="outliers",
+        )
+
+
 def main(argv: list[str] | None = None) -> None:
     """Visualize the dataset and the line defined by ``theta0 + theta1 * x``."""
 
@@ -154,13 +197,13 @@ def main(argv: list[str] | None = None) -> None:
     data = read_data(Path(args.data))
     theta0, theta1, *_ = load_theta(args.theta)
     rmse, r2 = evaluate(args.data, args.theta)
-
     xs = [x for x, _ in data]
     ys = [y for _, y in data]
+    inliers, outliers = split_outliers(data, theta0, theta1, args.sigma_k)
 
     # Matplotlib n’est pas bien typé : on cast "plt" en Any pour ce bloc
     plt_any = cast(Any, plt)
-    plt_any.scatter(xs, ys, label="data")
+    plot_points(plt_any, inliers, outliers)
     ax = plt_any.gca()
     if args.show_residuals:
         plot_residuals(plt_any, data, theta0, theta1)

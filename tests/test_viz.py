@@ -1,7 +1,7 @@
 import json
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 import pytest
 
@@ -250,3 +250,38 @@ def test_plot_regression_line(monkeypatch: pytest.MonkeyPatch) -> None:
     viz.plot_regression_line(ax, xs, 1.0, 2.0, False)
     assert calls["plot"]
     assert calls["annotate"] is None
+
+
+def test_highlight_outliers(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    plt = pytest.importorskip("matplotlib.pyplot")
+    calls: list[dict[str, Any]] = []
+
+    def fake_scatter(x: Iterable[float], y: Iterable[float], **kwargs: Any) -> None:
+        calls.append({"x": list(x), "y": list(y), "kwargs": kwargs})
+
+    class FakeAx:
+        def get_legend_handles_labels(self) -> tuple[list[object], list[str]]:
+            return ([], [])
+
+    monkeypatch.setattr(plt, "scatter", fake_scatter)
+    monkeypatch.setattr(plt, "show", lambda: None)
+    monkeypatch.setattr(plt, "legend", lambda *a, **k: None)
+    monkeypatch.setattr(plt, "gca", lambda: FakeAx())
+    monkeypatch.setattr(plt, "xlabel", lambda *a, **k: None)
+    monkeypatch.setattr(plt, "ylabel", lambda *a, **k: None)
+    monkeypatch.setattr(plt, "suptitle", lambda *a, **k: None)
+    monkeypatch.setattr(plt, "axhline", lambda *a, **k: None)
+    monkeypatch.setattr(viz, "plot_regression_line", lambda *a, **k: None)
+    monkeypatch.setattr(viz, "evaluate", lambda *a, **k: (0.0, 0.0))
+
+    data = tmp_path / "data.csv"
+    data.write_text("km,price\n0,0\n1,1\n2,2\n3,3\n4,4\n5,20\n")
+    theta = tmp_path / "theta.json"
+    theta.write_text(json.dumps({"theta0": 0.0, "theta1": 1.0}))
+
+    viz.main(["--data", str(data), "--theta", str(theta)])
+
+    assert len(calls) == 2
+    assert calls[0]["kwargs"].get("label") == "data"
+    assert calls[1]["kwargs"].get("label") == "outliers"
+    assert calls[1]["kwargs"].get("color") == "orange"

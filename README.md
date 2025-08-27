@@ -130,6 +130,8 @@ Tout écart (crash, valeur incohérente, absence de 0 en étape A, MAJ non simul
 poetry run python -m src.viz --data data.csv --theta theta.json --show-residuals
 ```
 Ajoutez `--show-residuals` pour tracer des lignes verticales représentant les résidus.
+Utilisez `--sigma-k` (défaut `2`) pour colorer en orange les points dont
+`|résidu| > k·σ`; ils sont ajoutés à la légende sous le nom « outliers ».
 <p align="center">
   <img src="docs/price-vs-km-regression.png" alt="Régression linéaire (price vs km)" width="760">
   <br><em>Nuage de points et droite θ₀ + θ₁·x (après entraînement).</em>

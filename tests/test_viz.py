@@ -36,6 +36,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         "eval": None,
         "suptitle": None,
         "vlines": 0,
+        "axhlines": [],
     }
 
     def fake_scatter(*args: object, **kwargs: object) -> None:
@@ -63,6 +64,9 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     def fake_vlines(*args: object, **kwargs: object) -> None:
         calls["vlines"] += 1
 
+    def fake_axhline(y: float, *, label: str, **_: object) -> None:
+        calls["axhlines"].append((y, label))
+
     class FakeAx:
         def get_legend_handles_labels(self) -> tuple[list[object], list[str]]:
             return ([], [])
@@ -74,6 +78,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(plt, "ylabel", lambda *a, **k: None)
     monkeypatch.setattr(plt, "suptitle", fake_suptitle)
     monkeypatch.setattr(plt, "vlines", fake_vlines)
+    monkeypatch.setattr(plt, "axhline", fake_axhline)
     monkeypatch.setattr(viz, "plot_regression_line", fake_plot_reg_line)
     monkeypatch.setattr(viz, "evaluate", fake_eval)
 
@@ -90,6 +95,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         "eval": (str(data), str(theta)),
         "suptitle": "RMSE: 0.00, R2: 1.00",
         "vlines": 0,
+        "axhlines": [(1.0, "mean(y)")],
     }
 
     calls.update(
@@ -100,6 +106,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
             "eval": None,
             "suptitle": None,
             "vlines": 0,
+            "axhlines": [],
         }
     )
     viz.main(
@@ -112,6 +119,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         "eval": (str(data), str(theta)),
         "suptitle": "RMSE: 0.00, R2: 1.00",
         "vlines": 0,
+        "axhlines": [(1.0, "mean(y)")],
     }
 
     calls.update(
@@ -122,6 +130,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
             "eval": None,
             "suptitle": None,
             "vlines": 0,
+            "axhlines": [],
         }
     )
     viz.main(
@@ -140,6 +149,37 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         "eval": (str(data), str(theta)),
         "suptitle": "RMSE: 0.00, R2: 1.00",
         "vlines": 2,
+        "axhlines": [(1.0, "mean(y)")],
+    }
+
+    calls.update(
+        {
+            "scatter": False,
+            "plot_rl": None,
+            "show": False,
+            "eval": None,
+            "suptitle": None,
+            "vlines": 0,
+            "axhlines": [],
+        }
+    )
+    viz.main(
+        [
+            "--data",
+            str(data),
+            "--theta",
+            str(theta),
+            "--show-median",
+        ]
+    )
+    assert calls == {
+        "scatter": True,
+        "plot_rl": True,
+        "show": True,
+        "eval": (str(data), str(theta)),
+        "suptitle": "RMSE: 0.00, R2: 1.00",
+        "vlines": 0,
+        "axhlines": [(1.0, "mean(y)"), (1.0, "median(y)")],
     }
 
 

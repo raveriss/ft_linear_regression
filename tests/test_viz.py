@@ -28,7 +28,13 @@ def test_line_points() -> None:
 
 def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     plt = pytest.importorskip("matplotlib.pyplot")
-    calls = {"scatter": False, "plot_rl": None, "show": False}
+    calls: dict[str, object] = {
+        "scatter": False,
+        "plot_rl": None,
+        "show": False,
+        "eval": None,
+        "suptitle": None,
+    }
 
     def fake_scatter(*args: object, **kwargs: object) -> None:
         calls["scatter"] = True
@@ -45,6 +51,13 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     ) -> None:
         calls["plot_rl"] = show_eq
 
+    def fake_eval(data_path: str, theta_path: str) -> tuple[float, float]:
+        calls["eval"] = (data_path, theta_path)
+        return 0.0, 1.0
+
+    def fake_suptitle(text: str) -> None:
+        calls["suptitle"] = text
+
     class FakeAx:
         def get_legend_handles_labels(self) -> tuple[list[object], list[str]]:
             return ([], [])
@@ -54,21 +67,43 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(plt, "gca", lambda: FakeAx())
     monkeypatch.setattr(plt, "xlabel", lambda *a, **k: None)
     monkeypatch.setattr(plt, "ylabel", lambda *a, **k: None)
+    monkeypatch.setattr(plt, "suptitle", fake_suptitle)
     monkeypatch.setattr(viz, "plot_regression_line", fake_plot_reg_line)
+    monkeypatch.setattr(viz, "evaluate", fake_eval)
 
     data = tmp_path / "data.csv"
-    data.write_text("km,price\n0,0\n1,1\n")
+    data.write_text("km,price\n0,1\n1,1\n")
     theta = tmp_path / "theta.json"
-    theta.write_text(json.dumps({"theta0": 0.0, "theta1": 1.0}))
+    theta.write_text(json.dumps({"theta0": 1.0, "theta1": 0.0}))
 
     viz.main(["--data", str(data), "--theta", str(theta)])
-    assert calls == {"scatter": True, "plot_rl": True, "show": True}
+    assert calls == {
+        "scatter": True,
+        "plot_rl": True,
+        "show": True,
+        "eval": (str(data), str(theta)),
+        "suptitle": "RMSE: 0.00, R2: 1.00",
+    }
 
-    calls.update({"scatter": False, "plot_rl": None, "show": False})
+    calls.update(
+        {
+            "scatter": False,
+            "plot_rl": None,
+            "show": False,
+            "eval": None,
+            "suptitle": None,
+        }
+    )
     viz.main(
         ["--data", str(data), "--theta", str(theta), "--no-show-eq"],
     )
-    assert calls == {"scatter": True, "plot_rl": False, "show": True}
+    assert calls == {
+        "scatter": True,
+        "plot_rl": False,
+        "show": True,
+        "eval": (str(data), str(theta)),
+        "suptitle": "RMSE: 0.00, R2: 1.00",
+    }
 
 
 def test_plot_regression_line(monkeypatch: pytest.MonkeyPatch) -> None:

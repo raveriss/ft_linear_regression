@@ -9,6 +9,7 @@ from typing import Any, Iterable, cast
 import matplotlib.pyplot as plt
 
 from linear_regression import estimatePrice
+from metrics import evaluate
 from predict.predict import load_theta
 from train.train import read_data
 
@@ -76,6 +77,7 @@ def main(argv: list[str] | None = None) -> None:
     args = _build_parser().parse_args(argv)
     data = read_data(Path(args.data))
     theta0, theta1, *_ = load_theta(args.theta)
+    rmse, r2 = evaluate(args.data, args.theta)
 
     xs = [x for x, _ in data]
     ys = [y for _, y in data]
@@ -85,6 +87,8 @@ def main(argv: list[str] | None = None) -> None:
     plt_any.scatter(xs, ys, label="data")
     ax = plt_any.gca()
     plot_regression_line(ax, xs, theta0, theta1, args.show_eq)
+
+    plt_any.suptitle(f"RMSE: {rmse:.2f}, R2: {r2:.2f}")
 
     plt_any.xlabel("km")
     plt_any.ylabel("price")

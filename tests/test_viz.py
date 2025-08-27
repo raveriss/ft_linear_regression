@@ -37,6 +37,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         "suptitle": None,
         "vlines": 0,
         "axhlines": [],
+        "fill_between": 0,
     }
 
     def fake_scatter(*args: object, **kwargs: object) -> None:
@@ -67,6 +68,9 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     def fake_axhline(y: float, *, label: str, **_: object) -> None:
         calls["axhlines"].append((y, label))
 
+    def fake_fill_between(*_: object, **__: object) -> None:
+        calls["fill_between"] += 1
+
     class FakeAx:
         def get_legend_handles_labels(self) -> tuple[list[object], list[str]]:
             return ([], [])
@@ -79,11 +83,12 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(plt, "suptitle", fake_suptitle)
     monkeypatch.setattr(plt, "vlines", fake_vlines)
     monkeypatch.setattr(plt, "axhline", fake_axhline)
+    monkeypatch.setattr(plt, "fill_between", fake_fill_between)
     monkeypatch.setattr(viz, "plot_regression_line", fake_plot_reg_line)
     monkeypatch.setattr(viz, "evaluate", fake_eval)
 
     data = tmp_path / "data.csv"
-    data.write_text("km,price\n0,1\n1,1\n")
+    data.write_text("km,price\n0,1\n1,1\n2,1\n")
     theta = tmp_path / "theta.json"
     theta.write_text(json.dumps({"theta0": 1.0, "theta1": 0.0}))
 
@@ -96,6 +101,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         "suptitle": "RMSE: 0.00, R2: 1.00",
         "vlines": 0,
         "axhlines": [(1.0, "mean(y)")],
+        "fill_between": 0,
     }
 
     calls.update(
@@ -107,6 +113,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
             "suptitle": None,
             "vlines": 0,
             "axhlines": [],
+            "fill_between": 0,
         }
     )
     viz.main(
@@ -120,6 +127,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         "suptitle": "RMSE: 0.00, R2: 1.00",
         "vlines": 0,
         "axhlines": [(1.0, "mean(y)")],
+        "fill_between": 0,
     }
 
     calls.update(
@@ -131,6 +139,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
             "suptitle": None,
             "vlines": 0,
             "axhlines": [],
+            "fill_between": 0,
         }
     )
     viz.main(
@@ -148,8 +157,9 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         "show": True,
         "eval": (str(data), str(theta)),
         "suptitle": "RMSE: 0.00, R2: 1.00",
-        "vlines": 2,
+        "vlines": 3,
         "axhlines": [(1.0, "mean(y)")],
+        "fill_between": 0,
     }
 
     calls.update(
@@ -161,6 +171,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
             "suptitle": None,
             "vlines": 0,
             "axhlines": [],
+            "fill_between": 0,
         }
     )
     viz.main(
@@ -180,6 +191,39 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         "suptitle": "RMSE: 0.00, R2: 1.00",
         "vlines": 0,
         "axhlines": [(1.0, "mean(y)"), (1.0, "median(y)")],
+        "fill_between": 0,
+    }
+
+    calls.update(
+        {
+            "scatter": False,
+            "plot_rl": None,
+            "show": False,
+            "eval": None,
+            "suptitle": None,
+            "vlines": 0,
+            "axhlines": [],
+            "fill_between": 0,
+        }
+    )
+    viz.main(
+        [
+            "--data",
+            str(data),
+            "--theta",
+            str(theta),
+            "--confidence",
+        ]
+    )
+    assert calls == {
+        "scatter": True,
+        "plot_rl": True,
+        "show": True,
+        "eval": (str(data), str(theta)),
+        "suptitle": "RMSE: 0.00, R2: 1.00",
+        "vlines": 0,
+        "axhlines": [(1.0, "mean(y)")],
+        "fill_between": 1,
     }
 
 

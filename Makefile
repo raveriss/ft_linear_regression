@@ -72,8 +72,9 @@ train:
 	$(POETRY) train --data $(DATA) --alpha $(ALPHA) --iters $(ITERS) --theta $(THETA)
 
 # Prédiction du prix pour une valeur donnée (km)
+predict: KM := $(word 2, $(MAKECMDGOALS))
 predict:
-	$(POETRY) predict --theta $(THETA)
+	$(POETRY) predict --theta $(THETA) $(if $(KM),--km $(KM),)
 
 # Visualisation des données + droite (theta0 + theta1 * x)
 viz:
@@ -94,3 +95,9 @@ run-train-nopoetry:
 # Prédiction via venv (sans Poetry)
 run-predict-nopoetry:
 	. .venv/bin/activate && python3 -m src.predict --km 85000 --theta $(THETA)
+
+# ----------------------------------------------------------------------------------------
+# Règle générique pour ignorer les cibles numériques (ex. make predict 23000)
+# ----------------------------------------------------------------------------------------
+%:
+	@:

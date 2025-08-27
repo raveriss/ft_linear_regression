@@ -9,9 +9,9 @@ from typing import Any, Iterable, cast
 import matplotlib.pyplot as plt
 
 from linear_regression import estimatePrice
+from metrics import evaluate
 from predict.predict import load_theta
 from train.train import read_data
-from metrics import evaluate
 
 
 def _build_parser() -> argparse.ArgumentParser:

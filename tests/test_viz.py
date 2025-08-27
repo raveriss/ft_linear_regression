@@ -28,7 +28,7 @@ def test_line_points() -> None:
 
 def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     plt = pytest.importorskip("matplotlib.pyplot")
-    calls = {
+    calls: dict[str, object] = {
         "scatter": False,
         "plot_rl": None,
         "show": False,

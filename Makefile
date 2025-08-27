@@ -78,7 +78,7 @@ predict:
 
 # Visualisation des données + droite (theta0 + theta1 * x)
 viz:
-	$(POETRY) python -m src.viz --data $(DATA) --theta $(THETA)
+	$(POETRY) python -m src.viz --data $(DATA) --theta $(THETA) --show-residuals --confidence
 
 # ----------------------------------------------------------------------------------------
 # Version sans Poetry (utilise un venv manuel)

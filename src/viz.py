@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import argparse
+import math
 from pathlib import Path
-from statistics import median
+from statistics import NormalDist, median
 from typing import Any, Iterable, cast
 
 import matplotlib.pyplot as plt
@@ -42,6 +43,14 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         default=False,
         help="display median of y as horizontal line",
+    )
+    parser.add_argument(
+        "--confidence",
+        nargs="?",
+        type=float,
+        const=0.95,
+        default=None,
+        help="display prediction confidence band at given level",
     )
     return parser
 
@@ -103,6 +112,25 @@ def main(argv: list[str] | None = None) -> None:
         for x, y in data:
             y_hat = estimatePrice(x, theta0, theta1)
             plt_any.vlines(x, y, y_hat, colors="gray", linewidth=0.5)
+    if args.confidence is not None and len(xs) > 2:
+        mean_x = sum(xs) / len(xs)
+        s_xx = sum((x - mean_x) ** 2 for x in xs)
+        residuals = [y - estimatePrice(x, theta0, theta1) for x, y in data]
+        sigma2 = sum(r ** 2 for r in residuals) / (len(xs) - 2)
+        sigma = math.sqrt(sigma2)
+        line_x = [
+            min(xs) + (max(xs) - min(xs)) * i / 100 for i in range(101)
+        ]
+        y_hat_band = [estimatePrice(x, theta0, theta1) for x in line_x]
+        z = NormalDist().inv_cdf(0.5 + args.confidence / 2)
+        se = [
+            sigma
+            * math.sqrt(1 / len(xs) + ((x - mean_x) ** 2) / s_xx)
+            for x in line_x
+        ]
+        lower = [y - z * e for y, e in zip(y_hat_band, se)]
+        upper = [y + z * e for y, e in zip(y_hat_band, se)]
+        plt_any.fill_between(line_x, lower, upper, color="red", alpha=0.1)
     plot_regression_line(ax, xs, theta0, theta1, args.show_eq)
 
     mean_y = sum(ys) / len(ys)

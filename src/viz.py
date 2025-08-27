@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+from statistics import median
 from typing import Any, Iterable, cast
 
 import matplotlib.pyplot as plt
@@ -35,6 +36,12 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         default=False,
         help="display residuals as vertical lines",
+    )
+    parser.add_argument(
+        "--show-median",
+        action="store_true",
+        default=False,
+        help="display median of y as horizontal line",
     )
     return parser
 
@@ -97,6 +104,12 @@ def main(argv: list[str] | None = None) -> None:
             y_hat = estimatePrice(x, theta0, theta1)
             plt_any.vlines(x, y, y_hat, colors="gray", linewidth=0.5)
     plot_regression_line(ax, xs, theta0, theta1, args.show_eq)
+
+    mean_y = sum(ys) / len(ys)
+    plt_any.axhline(mean_y, color="blue", linestyle="--", label="mean(y)")
+    if args.show_median:
+        median_y = median(ys)
+        plt_any.axhline(median_y, color="green", linestyle=":", label="median(y)")
 
     plt_any.suptitle(f"RMSE: {rmse:.2f}, R2: {r2:.2f}")
 

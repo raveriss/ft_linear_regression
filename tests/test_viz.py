@@ -1,6 +1,7 @@
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -28,7 +29,7 @@ def test_line_points() -> None:
 
 def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     plt = pytest.importorskip("matplotlib.pyplot")
-    calls: dict[str, object] = {
+    calls: dict[str, Any] = {
         "scatter": False,
         "plot_rl": None,
         "show": False,
@@ -123,13 +124,15 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
             "vlines": 0,
         }
     )
-    viz.main([
-        "--data",
-        str(data),
-        "--theta",
-        str(theta),
-        "--show-residuals",
-    ])
+    viz.main(
+        [
+            "--data",
+            str(data),
+            "--theta",
+            str(theta),
+            "--show-residuals",
+        ]
+    )
     assert calls == {
         "scatter": True,
         "plot_rl": True,

@@ -30,6 +30,12 @@ def _build_parser() -> argparse.ArgumentParser:
         default=True,
         help="display regression equation",
     )
+    parser.add_argument(
+        "--show-residuals",
+        action="store_true",
+        default=False,
+        help="display residuals as vertical lines",
+    )
     return parser
 
 
@@ -86,6 +92,10 @@ def main(argv: list[str] | None = None) -> None:
     plt_any = cast(Any, plt)
     plt_any.scatter(xs, ys, label="data")
     ax = plt_any.gca()
+    if args.show_residuals:
+        for x, y in data:
+            y_hat = estimatePrice(x, theta0, theta1)
+            plt_any.vlines(x, y, y_hat, colors="gray", linewidth=0.5)
     plot_regression_line(ax, xs, theta0, theta1, args.show_eq)
 
     plt_any.suptitle(f"RMSE: {rmse:.2f}, R2: {r2:.2f}")

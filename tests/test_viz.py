@@ -1,6 +1,7 @@
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -28,12 +29,13 @@ def test_line_points() -> None:
 
 def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     plt = pytest.importorskip("matplotlib.pyplot")
-    calls: dict[str, object] = {
+    calls: dict[str, Any] = {
         "scatter": False,
         "plot_rl": None,
         "show": False,
         "eval": None,
         "suptitle": None,
+        "vlines": 0,
     }
 
     def fake_scatter(*args: object, **kwargs: object) -> None:
@@ -58,6 +60,9 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     def fake_suptitle(text: str) -> None:
         calls["suptitle"] = text
 
+    def fake_vlines(*args: object, **kwargs: object) -> None:
+        calls["vlines"] += 1
+
     class FakeAx:
         def get_legend_handles_labels(self) -> tuple[list[object], list[str]]:
             return ([], [])
@@ -68,6 +73,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(plt, "xlabel", lambda *a, **k: None)
     monkeypatch.setattr(plt, "ylabel", lambda *a, **k: None)
     monkeypatch.setattr(plt, "suptitle", fake_suptitle)
+    monkeypatch.setattr(plt, "vlines", fake_vlines)
     monkeypatch.setattr(viz, "plot_regression_line", fake_plot_reg_line)
     monkeypatch.setattr(viz, "evaluate", fake_eval)
 
@@ -83,6 +89,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         "show": True,
         "eval": (str(data), str(theta)),
         "suptitle": "RMSE: 0.00, R2: 1.00",
+        "vlines": 0,
     }
 
     calls.update(
@@ -92,6 +99,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
             "show": False,
             "eval": None,
             "suptitle": None,
+            "vlines": 0,
         }
     )
     viz.main(
@@ -103,6 +111,35 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         "show": True,
         "eval": (str(data), str(theta)),
         "suptitle": "RMSE: 0.00, R2: 1.00",
+        "vlines": 0,
+    }
+
+    calls.update(
+        {
+            "scatter": False,
+            "plot_rl": None,
+            "show": False,
+            "eval": None,
+            "suptitle": None,
+            "vlines": 0,
+        }
+    )
+    viz.main(
+        [
+            "--data",
+            str(data),
+            "--theta",
+            str(theta),
+            "--show-residuals",
+        ]
+    )
+    assert calls == {
+        "scatter": True,
+        "plot_rl": True,
+        "show": True,
+        "eval": (str(data), str(theta)),
+        "suptitle": "RMSE: 0.00, R2: 1.00",
+        "vlines": 2,
     }
 
 

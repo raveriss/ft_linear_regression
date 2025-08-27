@@ -46,7 +46,7 @@ def test_predict_then_train(tmp_path: Path) -> None:
         cwd=str(repo_root),
     )
     assert result_predict.returncode == 0
-    assert result_predict.stdout.strip() == "Predicted price: 0.00 €"
+    assert result_predict.stdout.strip() == "0"
 
     result_train = subprocess.run(
         [

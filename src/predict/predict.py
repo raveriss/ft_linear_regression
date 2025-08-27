@@ -121,7 +121,7 @@ def predict_price(km: float, theta_path: str = "theta.json") -> float:
         max_price,
     ) = load_theta(theta_path)
     if theta0 == 0.0 and theta1 == 0.0:
-        return 0.0
+        return 0
     price = estimatePrice(km, theta0, theta1)
     _warn_outside(km, (min_km, max_km), "mileage")
     _warn_outside(price, (min_price, max_price), "price")

@@ -46,6 +46,16 @@ def test_predict_main_runs(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -
     assert captured.out.strip() == "Predicted price: 7.00 €"
 
 
+def test_predict_main_prints_zero(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    theta = tmp_path / "theta.json"
+    theta.write_text(json.dumps({"theta0": 0.0, "theta1": 0.0}))
+    assert predict_main(["--km", "0", "--theta", str(theta)]) == 0
+    captured = capsys.readouterr()
+    assert captured.out.strip() == "0"
+
+
 def test_predict_main_system_exit_str(monkeypatch: pytest.MonkeyPatch) -> None:
     def fake_parse_args(_argv: list[str] | None = None) -> tuple[float, str]:
         raise SystemExit("boom")

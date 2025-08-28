@@ -74,6 +74,14 @@ train:
 # Prédiction du prix pour une valeur donnée (km)
 predict: KM := $(word 2, $(MAKECMDGOALS))
 predict:
+	@if [ $(words $(MAKECMDGOALS)) -gt 2 ]; then \
+		echo "ERROR: Too many arguments"; \
+		echo "Usage:"; \
+		echo "  make predict            # interactive"; \
+		echo "  make predict <km>       # direct prediction"; \
+		echo "  make train              # train the model"; \
+		exit 2; \
+	fi; \
 	$(POETRY) predict --theta $(THETA) $(if $(KM),--km $(KM),)
 
 # Visualisation des données + droite (theta0 + theta1 * x)

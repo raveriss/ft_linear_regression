@@ -80,9 +80,10 @@ predict:
 		echo "  make predict            # interactive"; \
 		echo "  make predict <km>       # direct prediction"; \
 		echo "  make train              # train the model"; \
-		exit 2; \
-	fi; \
-	$(POETRY) predict --theta $(THETA) $(if $(KM),--km $(KM),)
+		true; \
+	else \
+		$(POETRY) predict --theta $(THETA) $(if $(KM),--km $(KM),); \
+	fi
 
 # Visualisation des données + droite (theta0 + theta1 * x)
 viz:

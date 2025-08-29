@@ -86,7 +86,13 @@ def test_parse_args_too_many(capsys: pytest.CaptureFixture[str]) -> None:
         parse_predict_args(["1", "2"])
     assert exc.value.code == 2
     out = capsys.readouterr().out.strip().splitlines()
-    assert out[0] == "Too many arguments"
+    assert out == [
+        "Too many arguments",
+        "Usage:",
+        "  make predict            # interactive",
+        "  make predict <km>       # direct prediction",
+        "  make train              # train the model",
+    ]
 
 
 def test_train_parser_definition() -> None:

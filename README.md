@@ -63,7 +63,7 @@ estimatePrice(x) = θ₀ + θ₁ * x
 
 ## ⚡ Démarrage rapide
 
-> En cas d’entrée invalide (ex. `--km` négatif ou non numérique) : le programme écrit un message `ERROR: ...` sur **stderr** et quitte avec **exit 2**.
+> En cas d’entrée invalide (ex. kilométrage négatif ou non numérique) : le programme écrit un message `ERROR: ...` sur **stderr** et quitte avec **exit 2**.
 
 
 ### 🔧 Installation
@@ -88,7 +88,7 @@ pip install -r requirements.txt
 poetry run train --data data.csv --alpha 0.1 --iters 1000 --theta theta.json
 
 # Prédiction
-poetry run predict --km 85000 --theta theta.json
+poetry run predict 85000 --theta theta.json
 ```
 
 > ℹ️ Si la droite rouge affichée par `viz` reste quasiment horizontale, vérifiez
@@ -104,7 +104,7 @@ Scénario officiel à démontrer en soutenance, en trois étapes **obligatoires*
 Suppression du fichier de paramètres
 ```bash
 rm -f theta.json
-python3 -m src.predict --km 50000 --theta theta.json
+python3 -m src.predict 50000 --theta theta.json
 ```
 → Résultat attendu : 0 (θ₀=0, θ₁=0 par défaut)
 
@@ -118,7 +118,7 @@ poetry run train --data data.csv --alpha 0.1 --iters 1000 --theta theta.json
 **Étape C :** prédiction après entraînement
 → Résultat attendu : prix non nul, cohérent avec la droite apprise (≈ CSV)
 ```bash
-python3 -m src.predict --km 50000 --theta theta.json
+python3 -m src.predict 50000 --theta theta.json
 ```
 ⚠️ Ces trois étapes doivent être **reproductibles à l’identique** devant le jury.
 Tout écart (crash, valeur incohérente, absence de 0 en étape A, MAJ non simultanée de θ) = **échec en défense.**
@@ -206,7 +206,7 @@ Predicted price: 7991.88 €
 ### End-to-End
 - `predict(0)=0` → `train` → `predict(km_csv) ≈ price`.  
 - CLI `--help` (exit 0), erreurs d’options (exit ≠ 0, message).  
-- Entrée interactive : prompt si `--km` manquant, gestion EOF/pipe.
+  - Entrée interactive : prompt si kilométrage manquant, gestion EOF/pipe.
 
 ### Couverture stricte (100 % global + diff + contrôle par fichier)
 ```bash

@@ -41,7 +41,7 @@ def test_train_main_runs(tmp_path: Path) -> None:
 def test_predict_main_runs(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     theta = tmp_path / "theta.json"
     theta.write_text(json.dumps({"theta0": 1.0, "theta1": 2.0}))
-    assert predict_main(["--km", "3", "--theta", str(theta)]) == 0
+    assert predict_main(["3", "--theta", str(theta)]) == 0
     captured = capsys.readouterr()
     assert captured.out.strip() == "Predicted price: 7.00 €"
 
@@ -51,7 +51,7 @@ def test_predict_main_prints_zero(
 ) -> None:
     theta = tmp_path / "theta.json"
     theta.write_text(json.dumps({"theta0": 0.0, "theta1": 0.0}))
-    assert predict_main(["--km", "0", "--theta", str(theta)]) == 0
+    assert predict_main(["0", "--theta", str(theta)]) == 0
     captured = capsys.readouterr()
     assert captured.out.strip() == "0"
 

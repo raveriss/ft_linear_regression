@@ -114,7 +114,7 @@ Parfait. J’ai lu les deux sujets fournis (énoncé et grille d’évaluation) 
 * **GD sain** : α configurable (CLI), normalisation optionnelle de `km`, itérations fixées + `early stopping`, MAJ **simultanée** de θ.
 * **Persistance** : `theta.json` (`{"theta0":…, "theta1":…}`), encodage UTF-8, emplacement local au projet.
 * **Tests** : unités (formules, MAJ simultanée), e2e (before=0 → train → after≈csv), cas limites (km=0, gros km, texte).
-* **CLI** : `train.py --data data.csv --alpha 1e-7 --iters 100000`, `predict.py --km 85000`, `--theta theta.json`.
+* **CLI** : `train.py --data data.csv --alpha 1e-7 --iters 100000`, `predict.py 85000`, `--theta theta.json`.
 * **Docs** : README avec séquence de soutenance, sans mention de lib “magiques”.
 * **Pas de polyfit / sklearn**. (Oui, je le répète.)
 

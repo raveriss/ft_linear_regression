@@ -15,7 +15,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Predict a car price from mileage",
     )
-    parser.add_argument("--km", type=float, help="mileage in kilometers")
+    parser.add_argument("km", nargs="?", type=float, help="mileage in kilometers")
     parser.add_argument("--theta", default="theta.json", help="path to theta JSON")
     return parser
 
@@ -38,7 +38,15 @@ def _prompt_mileage() -> float:
 def parse_args(argv: list[str] | None = None) -> tuple[float, str]:
     """Parse CLI arguments and prompt for mileage if needed."""
 
-    args = build_parser().parse_args(argv)
+    parser = build_parser()
+    args, extra = parser.parse_known_args(argv)
+    if extra:
+        print("Too many arguments")
+        print("Usage:")
+        print("  make predict            # interactive")
+        print("  make predict <km>       # direct prediction")
+        print("  make train              # train the model")
+        raise SystemExit(2)
     km = args.km
     if km is None:
         km = _prompt_mileage() if argv is None else 0.0

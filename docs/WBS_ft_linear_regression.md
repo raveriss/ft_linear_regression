@@ -27,7 +27,7 @@
 - **Refactor** : ajouter docstring, typing, tests `pytest.approx`.
 
 ### 1.2 Programme `predict.py`
-- [ ] Gestion CLI (`--km`, `--theta`) + prompt interactif si absent
+- [ ] Gestion CLI (`km`, `--theta`) + prompt interactif si absent
 - [ ] Avant entraînement → retourne toujours 0
 - [ ] Chargement `theta.json` robuste (fichier manquant, corrompu, droits)  
   - **Red** : test E2E échouant si fichier absent

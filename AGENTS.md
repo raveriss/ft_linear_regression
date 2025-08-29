@@ -69,10 +69,10 @@ python3 -m venv .venv
 pip install -r requirements.txt
 # Lancement direct (module ou fichier)
 python3 -m src.train --data data.csv --alpha 1e-7 --iters 100000 --theta theta.json
-python3 -m src.predict --km 85000 --theta theta.json
+python3 -m src.predict 85000 --theta theta.json
 # ou
 python3 src/train/train.py --data data.csv --alpha 1e-7 --iters 100000 --theta theta.json
-python3 src/predict/predict.py --km 85000 --theta theta.json
+python3 src/predict/predict.py 85000 --theta theta.json
 
 ```
 ### 0.3 Makefile (raccourcis non intrusifs)
@@ -100,7 +100,7 @@ mut:
 run-train:
 	poetry run python3 -m src.train --data data.csv --alpha 1e-7 --iters 100000
 run-predict:
-	poetry run python3 -m src.predict --km 85000
+        poetry run python3 -m src.predict 85000
 	
 install-venv:
 	python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
@@ -109,7 +109,7 @@ run-train-nopoetry:
 	. .venv/bin/activate && python3 -m src.train --data data.csv --alpha 1e-7 --iters 100000 --theta theta.json
 
 run-predict-nopoetry:
-	. .venv/bin/activate && python3 -m src.predict --km 85000 --theta theta.json
+        . .venv/bin/activate && python3 -m src.predict 85000 --theta theta.json
 	
 mut:
 	poetry run mutmut run --paths-to-mutate src --tests-dir tests --runner "pytest -q" --use-coverage --simple-output
@@ -179,7 +179,7 @@ PY
         run: |
           . .venv/bin/activate
           python -m src.train --data data.csv --alpha 1e-7 --iters 10 --theta theta.json
-          python -m src.predict --km 85000 --theta theta.json
+        python -m src.predict 85000 --theta theta.json
 
 ```
 
@@ -193,7 +193,7 @@ PY
 
 ## 1) 🧩 Architecture minimale (agents)
 - **`src/train/train.py`** : entraînement par **descente de gradient** ; MAJ **simultanée** de `θ0, θ1` via temporaires ; sauvegarde `theta.json`.
-- **`src/predict/predict.py`** : prédiction **interactive par défaut**. Si `--km` absent → **prompt** utilisateur. Charge `theta.json`.
+- **`src/predict/predict.py`** : prédiction **interactive par défaut**. Si kilométrage absent → **prompt** utilisateur. Charge `theta.json`.
 - **`src/io_utils.py`** : lecture CSV robuste (colonnes `km`,`price`), validation/parse.
 - **`tests/`** : unitaires + E2E + erreurs I/O + contrats.
 - **Bonus isolé** : `src/viz.py` (groupe Poetry `viz`) — **évalué uniquement si mandatory parfait**.
@@ -211,10 +211,10 @@ PY
 - [ ] **Pas de lib magique** : **interdit** `numpy.polyfit`, `sklearn.LinearRegression`.
 - [ ] **Persistance** : `theta.json` UTF‑8 (`{"theta0":..., "theta1":...}`) ; messages + codes retour ≠0 si manquant/corrompu.
 - [ ] **CLI** : options `--alpha`, `--iters`, `--theta` ; **pas de magic numbers** en dur.
-- [ ] **Predict interactif par défaut** : prompt si `--km` non fourni.
+- [ ] **Predict interactif par défaut** : prompt si kilométrage non fourni.
 - [ ] **Prédiction avant entraînement = 0** : tant que theta.json n’a pas été entraîné/écrit, predict doit renvoyer 0 pour tout kilométrage (hypothèse avec θ0=0, θ1=0). Testable en défense.
 **Scénario E2E “défense” (à garder en sous‑puces) :**
-- [ ] Étape A : supprimer theta.json ; exécuter python -m src.predict --km 12345 → 0.
+- [ ] Étape A : supprimer theta.json ; exécuter python -m src.predict 12345 → 0.
 - [ ] Étape B : entraîner (python -m src.train --data data.csv --alpha 1e-7 --iters 100000 --theta theta.json).
 - [ ] Étape C : relancer predict avec le même km → prix non nul, cohérent avec la droite apprise.
 
@@ -232,7 +232,7 @@ PY
 ### 3.2 E2E
 - `predict(0)=0` → `train` → `predict(km_csv) ≈ price`
 - CLI `--help` (exit 0), erreurs d’options (exit ≠ 0, message)
-- **Entrée interactive** : prompt si `--km` manquant, gestion EOF/pipe
+- **Entrée interactive** : prompt si kilométrage manquant, gestion EOF/pipe
 
 ### 3.3 Couverture (outil `coverage`)
 - `.coveragerc` implicite via commandes : `branch=True`, `--skip-empty`, `--show-contexts`
@@ -268,8 +268,8 @@ PY
 ### 4.2 CLI (exemples)
 ```bash
 python3 -m src.train --data data.csv --alpha 1e-7 --iters 100000 --theta theta.json
-python3 -m src.predict --km 85000 --theta theta.json
-# sans --km → prompt interactif
+python3 -m src.predict 85000 --theta theta.json
+# sans km → prompt interactif
 ```
 
 ### 4.3 Persistance
@@ -338,7 +338,7 @@ python3 -m src.predict --km 85000 --theta theta.json
 ### 7.1 Bloc d’aide minimal (à snapshot en test)
 ```
 usage: train.py --data DATA --alpha ALPHA --iters ITERS [--theta PATH]
-usage: predict.py [--km KM] [--theta PATH]
+usage: predict.py [KM] [--theta PATH]
 ```
 
 ### 7.2 Modèle de messages d’erreurs (tests de régression)

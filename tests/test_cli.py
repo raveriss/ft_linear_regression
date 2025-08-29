@@ -13,14 +13,15 @@ from train.__main__ import build_parser as build_train_parser  # noqa: E402
 def test_predict_parser_definition() -> None:
     parser = build_predict_parser()
     assert parser.description == "Predict a car price from mileage"
-    km_action = next(a for a in parser._actions if a.dest == "km")
-    theta_action = next(a for a in parser._actions if a.dest == "theta")
-    assert km_action.option_strings == ["--km"]
+    actions = {a.dest: a for a in parser._actions}
+    km_action = actions["km"]
+    theta_action = actions["theta"]
+    assert km_action.option_strings == []
     assert km_action.help == "mileage in kilometers"
     assert theta_action.option_strings == ["--theta"]
     assert theta_action.help == "path to theta JSON"
 
-    args = parser.parse_args(["--km", "12.5"])
+    args = parser.parse_args(["12.5"])
     assert isinstance(args.km, float)
     assert args.km == pytest.approx(12.5)
     assert args.theta == "theta.json"
@@ -29,20 +30,20 @@ def test_predict_parser_definition() -> None:
     assert args2.theta == "file.json" and args2.km is None
 
     with pytest.raises(SystemExit):
-        parser.parse_args(["--km", "oops"])
+        parser.parse_args(["oops"])
 
 
 def test_parse_args_with_explicit_values(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    km, theta = parse_predict_args(["--km", "5", "--theta", "file.json"])
+    km, theta = parse_predict_args(["5", "--theta", "file.json"])
     assert km == pytest.approx(5.0)
     assert theta == "file.json"
-    km_zero, _ = parse_predict_args(["--km", "0"])
+    km_zero, _ = parse_predict_args(["0"])
     assert km_zero == pytest.approx(0.0)
     capsys.readouterr()
     with pytest.raises(SystemExit) as exc:
-        parse_predict_args(["--km", "-1"])
+        parse_predict_args(["-1"])
     assert exc.value.code == 2
     assert (
         capsys.readouterr().out.strip()
@@ -78,6 +79,14 @@ def test_parse_args_default_km() -> None:
     km, theta = parse_predict_args(["--theta", "file.json"])
     assert km == pytest.approx(0.0)
     assert theta == "file.json"
+
+
+def test_parse_args_too_many(capsys: pytest.CaptureFixture[str]) -> None:
+    with pytest.raises(SystemExit) as exc:
+        parse_predict_args(["1", "2"])
+    assert exc.value.code == 2
+    out = capsys.readouterr().out.strip().splitlines()
+    assert out[0] == "Too many arguments"
 
 
 def test_train_parser_definition() -> None:

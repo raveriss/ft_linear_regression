@@ -20,6 +20,7 @@
 - [🚀 Objectif du projet](#-objectif-du-projet)
 - [🧰 Stack technologique](#-stack-technologique)
 - [⚡ Démarrage rapide](#-démarrage-rapide)
+- [🛠️ Commandes Make](#-commandes-make)
 - [🧪 Procédure de soutenance](#-procédure-de-soutenance-e2e-défense-proof)
 - [📦 Utilisation](#-utilisation)
 - [📝 Données](#-données)
@@ -95,6 +96,27 @@ poetry run predict 85000 --theta theta.json
 > le contenu de `theta.json`. Une valeur de `--alpha` trop faible (par exemple
 > `1e-7`) laisse les coefficients proches de zéro. Utilisez `--alpha 0.1` (ou
 > `0.01`) et suffisamment d'itérations pour obtenir une pente négative réaliste.
+
+## 🛠️ Commandes Make
+
+Les principales cibles du [Makefile](./Makefile) facilitent l'installation, la qualité du code et l'utilisation du modèle :
+
+| Commande | Description |
+| --- | --- |
+| `make install` | Installe les dépendances avec Poetry (groupe dev inclus). |
+| `make reqs` | Génère `requirements.txt` pour l'exécution sans Poetry. |
+| `make lint` | Analyse statique du code avec Ruff. |
+| `make format` | Formate le code et applique les corrections automatiques de Ruff. |
+| `make type` | Vérifie les types avec Mypy. |
+| `make test` | Lance les tests unitaires via Pytest. |
+| `make cov` | Produit les rapports de couverture (JSON, HTML, console). |
+| `make mut` | Exécute les tests de mutation avec Mutmut. |
+| `make train` | Entraîne le modèle ; variables personnalisables : `DATA`, `ALPHA`, `ITERS`, `THETA`. |
+| `make predict [km]` | Prédit le prix pour un kilométrage donné. |
+| `make viz` | (Bonus) Affiche les données et la droite de régression. |
+| `make install-venv` | Crée un environnement virtuel et installe les dépendances via `requirements.txt`. |
+| `make run-train-nopoetry` | Entraîne le modèle sans Poetry (fallback soutenance). |
+| `make run-predict-nopoetry` | Prédit le prix sans Poetry (fallback soutenance). |
 
 ## 🧪 Procédure de soutenance (E2E “défense-proof”)
 

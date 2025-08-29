@@ -23,10 +23,6 @@ ITERS ?= 1000
 install:
 	poetry install --with dev
 
-# Export des dépendances en requirements.txt (utile pour venv ou déploiement hors Poetry)
-reqs:
-	poetry export -f requirements.txt -o requirements.txt --without-hashes
-
 # ----------------------------------------------------------------------------------------
 # Vérifications de qualité du code
 # ----------------------------------------------------------------------------------------
@@ -73,27 +69,11 @@ train:
 
 # Prédiction du prix pour une valeur donnée (km)
 predict:
-        $(POETRY) predict --theta $(THETA) $(filter-out $@,$(MAKECMDGOALS))
+	@$(POETRY) predict --theta $(THETA) $(filter-out $@,$(MAKECMDGOALS)) || true
 
 # Visualisation des données + droite (theta0 + theta1 * x)
 viz:
 	$(POETRY) python -m src.viz --data $(DATA) --theta $(THETA) --show-residuals --confidence
-
-# ----------------------------------------------------------------------------------------
-# Version sans Poetry (utilise un venv manuel)
-# ----------------------------------------------------------------------------------------
-
-# Création d’un venv Python classique et installation des dépendances
-install-venv:
-	python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
-
-# Entraînement via venv (sans Poetry)
-run-train-nopoetry:
-	. .venv/bin/activate && python3 -m src.train --data $(DATA) --alpha $(ALPHA) --iters $(ITERS) --theta $(THETA)
-
-# Prédiction via venv (sans Poetry)
-run-predict-nopoetry:
-        . .venv/bin/activate && python3 -m src.predict 85000 --theta $(THETA)
 
 # ----------------------------------------------------------------------------------------
 # Règle générique pour ignorer les cibles numériques (ex. make predict 23000)

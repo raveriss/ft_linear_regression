@@ -1,0 +1,18 @@
+{
+    "exit_code_by_key": {
+        "predict.__main__.x_main__mutmut_1": 1,
+        "predict.__main__.x_main__mutmut_2": 1,
+        "predict.__main__.x_main__mutmut_3": 1,
+        "predict.__main__.x_main__mutmut_4": 1,
+        "predict.__main__.x_main__mutmut_5": 1,
+        "predict.__main__.x_main__mutmut_6": 1,
+        "predict.__main__.x_main__mutmut_7": 1,
+        "predict.__main__.x_main__mutmut_8": 1,
+        "predict.__main__.x_main__mutmut_9": 1,
+        "predict.__main__.x_main__mutmut_10": 1,
+        "predict.__main__.x_main__mutmut_11": 1,
+        "predict.__main__.x_main__mutmut_12": 1,
+        "predict.__main__.x_main__mutmut_13": 1
+    },
+    "hash_by_function_name": {}
+}

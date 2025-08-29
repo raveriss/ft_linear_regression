@@ -104,7 +104,6 @@ Les principales cibles du [Makefile](./Makefile) facilitent l'installation, la q
 | Commande | Description |
 | --- | --- |
 | `make install` | Installe les dépendances avec Poetry (groupe dev inclus). |
-| `make reqs` | Génère `requirements.txt` pour l'exécution sans Poetry. |
 | `make lint` | Analyse statique du code avec Ruff. |
 | `make format` | Formate le code et applique les corrections automatiques de Ruff. |
 | `make type` | Vérifie les types avec Mypy. |
@@ -114,9 +113,7 @@ Les principales cibles du [Makefile](./Makefile) facilitent l'installation, la q
 | `make train` | Entraîne le modèle ; variables personnalisables : `DATA`, `ALPHA`, `ITERS`, `THETA`. |
 | `make predict [km]` | Prédit le prix pour un kilométrage donné. |
 | `make viz` | (Bonus) Affiche les données et la droite de régression. |
-| `make install-venv` | Crée un environnement virtuel et installe les dépendances via `requirements.txt`. |
-| `make run-train-nopoetry` | Entraîne le modèle sans Poetry (fallback soutenance). |
-| `make run-predict-nopoetry` | Prédit le prix sans Poetry (fallback soutenance). |
+
 
 ## 🧪 Procédure de soutenance (E2E “défense-proof”)
 

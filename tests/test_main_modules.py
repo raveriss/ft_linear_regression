@@ -64,6 +64,16 @@ def test_predict_main_system_exit_str(monkeypatch: pytest.MonkeyPatch) -> None:
     assert predict_main([]) == 1
 
 
+def test_predict_main_non_string_theta(monkeypatch: pytest.MonkeyPatch) -> None:
+    from pathlib import Path
+
+    def fake_parse_args(_argv: list[str] | None = None) -> tuple[float, Path]:
+        return 1.0, Path("theta.json")
+
+    monkeypatch.setattr("predict.__main__.parse_args", fake_parse_args)
+    assert predict_main([]) == 2
+
+
 def test_train_main_missing_csv(capsys: pytest.CaptureFixture[str]) -> None:
     code = train_main(["--data", "missing.csv"])
     captured = capsys.readouterr()

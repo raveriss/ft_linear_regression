@@ -183,15 +183,24 @@ Predicted price: 7991.88 €
 ## 🧠 Architecture
 ```
 .
+├── author
+├── CONTRIBUTING.md
 ├── data.csv
-├── pyproject.toml
-├── requirements.txt
-├── src/
-│   ├── train.py      # descente de gradient (MAJ simultanée θ)
-│   ├── predict.py    # prédiction (0 avant train)
-│   ├── io_utils.py   # lecture CSV robuste
-│   └── viz.py        # (BONUS uniquement) visualisation – non installé par défaut
-└── tests/            # unitaires + E2E + erreurs I/O
+├── LICENSE
+├── Makefile
+├── README.md
+└── src
+    ├── linear_regression.py
+    ├── metrics.py
+    ├── predict
+    │   ├── __init__.py
+    │   ├── __main__.py
+    │   └── predict.py
+    ├── train
+    │   ├── __init__.py
+    │   ├── __main__.py
+    │   └── train.py
+    └── viz.py
 ```
 
 *(Bonus : `viz.py` affiche données + droite de régression)*

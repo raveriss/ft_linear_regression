@@ -29,7 +29,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     # Rend l’argument km optionnel pour supporter le mode interactif.
     parser.add_argument("km", nargs="?", type=float, help="mileage in kilometers")
-    # Permet de choisir une autre source de coefficients sans recompilation.    
+    # Permet de choisir une autre source de coefficients sans recompilation.
     parser.add_argument("--theta", default="theta.json", help="path to theta JSON")
     # Retourne le parseur pour réutilisation dans parse_args().
     return parser
@@ -58,7 +58,7 @@ def _prompt_mileage() -> float:
 
 
 def parse_args(argv: list[str] | None = None) -> tuple[float, str]:
-    """ Centralise le parsing et la politique d’entrée pour cohérence CLI."""
+    """Centralise le parsing et la politique d’entrée pour cohérence CLI."""
     # Construit le parseur une seule fois pour config unique de la CLI.
     parser = build_parser()
     # Permet d’ignorer des arguments inconnus et de les contrôler ensuite.

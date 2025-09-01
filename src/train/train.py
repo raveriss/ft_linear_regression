@@ -9,10 +9,13 @@ from __future__ import annotations
 
 # Fournit les primitives pour lire/écrire des fichiers CSV
 import csv
+
 # Fournit la sérialisation et désérialisation en JSON
 import json
+
 # Fournit les fonctions mathématiques (NaN, etc.)
 import math
+
 # Fournit un objet chemin multiplateforme pour fichiers
 from pathlib import Path
 
@@ -42,7 +45,7 @@ def _parse_row(row: dict[str, str | None], line_number: int) -> tuple[float, flo
     # Vérifie qu'aucune des deux valeurs n'est manquante
     if km_str is None or price_str is None:
         raise ValueError(f"invalid row {line_number}: missing value")
-    
+
     # Convertit km en float et vérifie validité
     km = _float_field(km_str, line_number)
     # Convertit price en float et vérifie validité

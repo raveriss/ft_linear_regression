@@ -77,7 +77,7 @@ def build_parser() -> argparse.ArgumentParser:  # pragma: no mutate
         help="path to training data CSV",
     )  # pragma: no mutate
     # Valide alpha via _alpha_type; par défaut stable 0.1.
-    # Invariant: 0<alpha≤1 garanti par _alpha_type.    
+    # Invariant: 0<alpha≤1 garanti par _alpha_type.
     parser.add_argument(
         "--alpha",
         type=_alpha_type,

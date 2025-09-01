@@ -12,10 +12,13 @@ import argparse
 
 # Fournit sqrt et autres pour intervalles de confiance
 import math
+
 # Gère les chemins fichier de manière portable
 from pathlib import Path
+
 # Donne loi normale et stats robustes (médiane, stdev)
 from statistics import NormalDist, median, stdev
+
 # Types utilitaires pour signatures et cast
 from typing import Any, Iterable, Sequence, cast
 
@@ -24,10 +27,13 @@ import matplotlib.pyplot as plt
 
 # Fonction de prédiction du modèle linéaire
 from linear_regression import estimatePrice
+
 # Calcule RMSE et R² pour le titre/diagnostic
 from metrics import evaluate
+
 # Charge les paramètres du modèle depuis fichier
 from predict.predict import load_theta
+
 # Charge et valide le CSV des données
 from train.train import read_data
 

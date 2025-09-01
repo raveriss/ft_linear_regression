@@ -71,11 +71,6 @@ estimatePrice(x) = θ₀ + θ₁ * x
 ```bash
 # Avec Poetry (recommandé)
 poetry install --with dev
-
-# Fallback soutenance 42 (sans Poetry)
-python3 -m venv .venv
-. .venv/bin/activate
-pip install -r requirements.txt
 ```
 
 > ℹ️ Bonus non installé par défaut  

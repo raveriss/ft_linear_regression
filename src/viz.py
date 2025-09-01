@@ -1,49 +1,76 @@
-"""Visualize the dataset and fitted regression line."""
+"""Visualiser le dataset et la droite de régression.
 
+But:
+    Offrir une CLI et des tracés pour diagnostiquer le modèle.
+"""
+
+# Active les annotations différées (compatibilité Python <3.11)
 from __future__ import annotations
 
+# Parse la CLI pour piloter l’affichage
 import argparse
+
+# Fournit sqrt et autres pour intervalles de confiance
 import math
+# Gère les chemins fichier de manière portable
 from pathlib import Path
+# Donne loi normale et stats robustes (médiane, stdev)
 from statistics import NormalDist, median, stdev
+# Types utilitaires pour signatures et cast
 from typing import Any, Iterable, Sequence, cast
 
+# Backend plotting pour générer les figures
 import matplotlib.pyplot as plt
 
+# Fonction de prédiction du modèle linéaire
 from linear_regression import estimatePrice
+# Calcule RMSE et R² pour le titre/diagnostic
 from metrics import evaluate
+# Charge les paramètres du modèle depuis fichier
 from predict.predict import load_theta
+# Charge et valide le CSV des données
 from train.train import read_data
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    """Return a command-line argument parser."""
+    """Return a command-line argument parser.
 
+    But:
+        Définir les options CLI pour contrôler les tracés.
+    """
+
+    # Construit l’objet parseur avec une description courte
     parser = argparse.ArgumentParser(description="Visualize data and model")
+    # Ajoute l’option du chemin des données CSV
     parser.add_argument("--data", default="data.csv", help="path to CSV data")
+    # Ajoute l’option du chemin des coefficients
     parser.add_argument(
         "--theta",
         default="theta.json",
         help="path to model coefficients",
     )
+    # Ajoute un flag pour afficher l’équation
     parser.add_argument(
         "--show-eq",
         action=argparse.BooleanOptionalAction,
         default=True,
         help="display regression equation",
     )
+    # Ajoute un flag pour tracer les résidus
     parser.add_argument(
         "--show-residuals",
         action="store_true",
         default=False,
         help="display residuals as vertical lines",
     )
+    # Ajoute un flag pour tracer la médiane
     parser.add_argument(
         "--show-median",
         action="store_true",
         default=False,
         help="display median of y as horizontal line",
     )
+    # Ajoute un niveau optionnel pour la bande de confiance
     parser.add_argument(
         "--confidence",
         nargs="?",
@@ -52,6 +79,7 @@ def _build_parser() -> argparse.ArgumentParser:
         default=None,
         help="display prediction confidence band at given level",
     )
+    # Ajoute le seuil k en sigma pour marquer les outliers
     parser.add_argument(
         "--sigma-k",
         type=float,
@@ -66,12 +94,17 @@ def _line_points(
 ) -> tuple[list[float], list[float]]:
     """Return ``(x_points, y_points)`` for the regression line.
 
-    The line is drawn between the minimum and maximum values of ``xs``.
+    But:
+        Déterminer les extrémités et valeurs de la droite ajustée.
     """
 
+    # Cherche l’abscisse minimale de l’échantillon
     min_x = min(xs)
+    # Cherche l’abscisse maximale de l’échantillon
     max_x = max(xs)
+    # Définit les deux points extrêmes à tracer
     line_x = [min_x, max_x]
+    # Calcule ŷ sur ces deux abscisses pour la droite
     line_y = [estimatePrice(x, theta0, theta1) for x in line_x]
     return line_x, line_y
 
@@ -83,13 +116,22 @@ def plot_regression_line(
     theta1: float,
     show_eq: bool,
 ) -> None:
-    """Plot the regression line on ``ax`` and optionally annotate its equation."""
+    """Plot the regression line on ``ax`` and optionally annotate its equation.
 
+    But:
+        Afficher la droite et, si demandé, son équation.
+    """
+
+    # Prépare les deux points extrêmes de la droite
     line_x, line_y = _line_points(xs, theta0, theta1)
     ax.plot(line_x, line_y, color="red", label="theta0 + theta1 * x")
+    # Trace la droite sur les axes courants
 
+    # Ajoute l’annotation de l’équation si activée
     if show_eq:
+        # Formate l’équation pour une lecture rapide
         equation = f"price = {theta0:.2f} + {theta1:.2f} * km"
+        # Positionne le texte relatif au cadre des axes
         ax.annotate(
             equation,
             xy=(0.05, 0.95),
@@ -105,10 +147,17 @@ def plot_residuals(
     theta0: float,
     theta1: float,
 ) -> None:
-    """Display vertical lines between actual and predicted values."""
+    """Display vertical lines between actual and predicted values.
 
+    But:
+        Visualiser l’écart y - ŷ pour chaque point.
+    """
+
+    # Itère sur chaque point pour tracer le résidu
     for x, y in data:
+        # Calcule la prédiction pour l’abscisse
         y_hat = estimatePrice(x, theta0, theta1)
+        # Trace un segment vertical entre y et ŷ
         plt_mod.vlines(x, y, y_hat, colors="gray", linewidth=0.5)
 
 
@@ -120,36 +169,63 @@ def plot_confidence_band(
     theta1: float,
     level: float,
 ) -> None:
-    """Shade the prediction confidence band at the given level."""
+    """Shade the prediction confidence band at the given level.
 
+    But:
+        Afficher l’incertitude de prédiction au niveau donné.
+    """
+
+    # Matérialise xs pour stats et bornes
     xs_list = list(xs)
+    # Si moins de 3 points, pas d’estimation fiable
     if len(xs_list) <= 2:
         return
+    # Moyenne des abscisses pour s_xx
     mean_x = sum(xs_list) / len(xs_list)
+    # Somme des carrés centrés des abscisses
     s_xx = sum((x - mean_x) ** 2 for x in xs_list)
+    # Calcule les résidus sur les données
     residuals = [y - estimatePrice(x, theta0, theta1) for x, y in data]
+    # Estime la variance des erreurs (sigma²)
     sigma2 = sum(r**2 for r in residuals) / (len(xs_list) - 2)
+    # Écarte type résiduel
     sigma = math.sqrt(sigma2)
+    # Génère 101 points réguliers pour la bande
     line_x = [
         min(xs_list) + (max(xs_list) - min(xs_list)) * i / 100 for i in range(101)
     ]
+    # Calcule ŷ pour chaque point de la grille
     y_hat_band = [estimatePrice(x, theta0, theta1) for x in line_x]
+    # Convertit le niveau en quantile normal (bilatéral)
     z = NormalDist().inv_cdf(0.5 + level / 2)
+    # Calcule l’erreur standard de prédiction pointwise
     se = [
         sigma * math.sqrt(1 / len(xs_list) + ((x - mean_x) ** 2) / s_xx) for x in line_x
     ]
+    # Borne inférieure de la bande
     lower = [y - z * e for y, e in zip(y_hat_band, se)]
+    # Borne supérieure de la bande
     upper = [y + z * e for y, e in zip(y_hat_band, se)]
+    # Colore la zone de confiance autour de la droite
     plt_mod.fill_between(line_x, lower, upper, color="red", alpha=0.1)
 
 
 def plot_central_tendency(plt_mod: Any, ys: Sequence[float], show_median: bool) -> None:
-    """Draw mean and optionally median of ``ys``."""
+    """Draw mean and optionally median of ``ys``.
 
+    But:
+        Visualiser tendance centrale pour lecture rapide.
+    """
+
+    # Calcule la moyenne des ordonnées
     mean_y = sum(ys) / len(ys)
+    # Trace la ligne horizontale de la moyenne
     plt_mod.axhline(mean_y, color="blue", linestyle="--", label="mean(y)")
+    # Optionnellement trace la médiane
     if show_median:
+        # Calcule la médiane (robuste aux outliers)
         median_y = median(ys)
+        # Trace la ligne horizontale de la médiane
         plt_mod.axhline(median_y, color="green", linestyle=":", label="median(y)")
 
 
@@ -159,11 +235,19 @@ def split_outliers(
     theta1: float,
     k: float,
 ) -> tuple[list[tuple[float, float]], list[tuple[float, float]]]:
-    """Return ``(inliers, outliers)`` based on residual standard deviation."""
+    """Return ``(inliers, outliers)`` based on residual standard deviation.
 
+    But:
+        Séparer points selon |résidu| ≤/> k·σ pour styliser le nuage.
+    """
+
+    # Calcule les résidus sur l’échantillon
     residuals = [y - estimatePrice(x, theta0, theta1) for x, y in data]
+    # Estime σ des résidus (0 si <2 points)
     sigma = stdev(residuals) if len(residuals) > 1 else 0.0
+    # Conserve points dont le résidu est dans k·σ
     inliers = [(x, y) for (x, y), r in zip(data, residuals) if abs(r) <= k * sigma]
+    # Marque points dont le résidu dépasse k·σ
     outliers = [(x, y) for (x, y), r in zip(data, residuals) if abs(r) > k * sigma]
     return inliers, outliers
 
@@ -173,15 +257,23 @@ def plot_points(
     inliers: Sequence[tuple[float, float]],
     outliers: Sequence[tuple[float, float]],
 ) -> None:
-    """Scatter inliers and outliers with appropriate colors."""
+    """Scatter inliers and outliers with appropriate colors.
 
+    But:
+        Dessiner nuage de points et surligner les outliers.
+    """
+
+    # Dispersion des inliers si présents
     if inliers:
+        # Trace les inliers sans couleur forcée
         plt_mod.scatter(
             [x for x, _ in inliers],
             [y for _, y in inliers],
             label="data",
         )
+    # Dispersion des outliers si présents
     if outliers:
+        # Trace les outliers avec couleur distinctive
         plt_mod.scatter(
             [x for x, _ in outliers],
             [y for _, y in outliers],
@@ -191,38 +283,62 @@ def plot_points(
 
 
 def main(argv: list[str] | None = None) -> None:
-    """Visualize the dataset and the line defined by ``theta0 + theta1 * x``."""
+    """Visualize the dataset and the line defined by ``theta0 + theta1 * x``.
 
+    But:
+        Orchestrer chargement, évaluation et tracés Matplotlib.
+    """
+
+    # Parse les arguments passés à la commande
     args = _build_parser().parse_args(argv)
+    # Charge et valide les données depuis le CSV
     data = read_data(Path(args.data))
+    # Charge theta et ignore champs additionnels
     theta0, theta1, *_ = load_theta(args.theta)
+    # Calcule RMSE et R² pour annotation
     rmse, r2 = evaluate(args.data, args.theta)
+    # Extrait la liste des abscisses
     xs = [x for x, _ in data]
+    # Extrait la liste des ordonnées
     ys = [y for _, y in data]
+    # Sépare inliers/outliers selon k·σ
     inliers, outliers = split_outliers(data, theta0, theta1, args.sigma_k)
 
-    # Matplotlib n’est pas bien typé : on cast "plt" en Any pour ce bloc
+    # Neutralise le typage de plt pour appels dynamiques
     plt_any = cast(Any, plt)
+    # Trace les points avec style outliers
     plot_points(plt_any, inliers, outliers)
+    # Récupère les axes courants pour tracer la droite
     ax = plt_any.gca()
+    # Si demandé, trace les segments de résidu
     if args.show_residuals:
         plot_residuals(plt_any, data, theta0, theta1)
+    # Si niveau fourni, affiche la bande de confiance
     if args.confidence is not None:
         plot_confidence_band(plt_any, xs, data, theta0, theta1, args.confidence)
+    # Trace la droite de régression et optionnellement l’équation
     plot_regression_line(ax, xs, theta0, theta1, args.show_eq)
+    # Trace moyenne et éventuellement médiane des y
     plot_central_tendency(plt_any, ys, args.show_median)
 
+    # Ajoute un titre synthétique avec métriques clés
     plt_any.suptitle(f"RMSE: {rmse:.2f}, R2: {r2:.2f}")
 
+    # Étiquette l’axe des abscisses en kilomètres
     plt_any.xlabel("km")
+    # Étiquette l’axe des ordonnées en prix
     plt_any.ylabel("price")
 
+    # Récupère labels pour décider d’afficher la légende
     _, labels = ax.get_legend_handles_labels()  # évite reportUnusedVariable
+    # Affiche la légende seulement si au moins un label existe
     if any(labels):
         plt_any.legend()
 
+    # Ouvre la fenêtre de rendu des figures
     plt_any.show()
 
 
+# Autorise l’exécution comme script utilitaire
 if __name__ == "__main__":  # pragma: no cover - convenience script
     main()

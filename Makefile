@@ -6,7 +6,7 @@
 #   - Fournir des commandes pratiques pour l’entraînement et la prédiction du modèle
 # ========================================================================================
 
-.PHONY: install lint format type test cov mut train predict viz reqs install-venv run-train-nopoetry run-predict-nopoetry
+.PHONY: install lint format type test cov mut train predict-nocheck viz
 
 # Utilisation raccourcie de Poetry
 POETRY = poetry run
@@ -68,7 +68,7 @@ train:
 	$(POETRY) train --data $(DATA) --alpha $(ALPHA) --iters $(ITERS) --theta $(THETA)
 
 # Prédiction du prix pour une valeur donnée (km)
-predict:
+predict-nocheck:
 	@$(POETRY) predict --theta $(THETA) $(filter-out $@,$(MAKECMDGOALS)) || true
 
 # Visualisation des données + droite (theta0 + theta1 * x)
@@ -76,7 +76,7 @@ viz:
 	$(POETRY) python -m src.viz --data $(DATA) --theta $(THETA) --show-residuals --confidence
 
 # ----------------------------------------------------------------------------------------
-# Règle générique pour ignorer les cibles numériques (ex. make predict 23000)
+# Règle générique pour ignorer les cibles numériques (ex. make predict-nocheck 23000)
 # ----------------------------------------------------------------------------------------
 %:
 	@:

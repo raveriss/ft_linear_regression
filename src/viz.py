@@ -167,6 +167,57 @@ def plot_residuals(
         plt_mod.vlines(x, y, y_hat, colors="gray", linewidth=0.5)
 
 
+def _stats(xs_list: Sequence[float]) -> tuple[float, float]:
+    """Return mean of ``xs_list`` and centered sum of squares."""
+
+    mean_x = sum(xs_list) / len(xs_list)
+    s_xx = sum((x - mean_x) ** 2 for x in xs_list)
+    return mean_x, s_xx
+
+
+def _residual_sigma(
+    data: Iterable[tuple[float, float]],
+    theta0: float,
+    theta1: float,
+    n: int,
+) -> float:
+    """Return standard deviation of residuals."""
+
+    residuals = [y - estimatePrice(x, theta0, theta1) for x, y in data]
+    sigma2 = sum(r**2 for r in residuals) / (n - 2)
+    return math.sqrt(sigma2)
+
+
+def _band_grid(xs_list: Sequence[float]) -> list[float]:
+    """Return regular grid covering ``xs_list`` range."""
+
+    min_x, max_x = min(xs_list), max(xs_list)
+    return [min_x + (max_x - min_x) * i / 100 for i in range(101)]
+
+
+def _std_errors(
+    line_x: Sequence[float],
+    xs_list: Sequence[float],
+    sigma: float,
+    mean_x: float,
+    s_xx: float,
+) -> list[float]:
+    """Return pointwise standard errors for ``line_x``."""
+
+    n = len(xs_list)
+    return [sigma * math.sqrt(1 / n + ((x - mean_x) ** 2) / s_xx) for x in line_x]
+
+
+def _band_bounds(
+    y_hat_band: Sequence[float], se: Sequence[float], z: float
+) -> tuple[list[float], list[float]]:
+    """Return lower and upper bounds of the band."""
+
+    lower = [y - z * e for y, e in zip(y_hat_band, se)]
+    upper = [y + z * e for y, e in zip(y_hat_band, se)]
+    return lower, upper
+
+
 def plot_confidence_band(
     plt_mod: Any,
     xs: Iterable[float],
@@ -186,37 +237,17 @@ def plot_confidence_band(
     # Si moins de 3 points, pas d’estimation fiable
     if len(xs_list) <= 2:
         return
-    # Moyenne des abscisses pour s_xx
-    mean_x = sum(xs_list) / len(xs_list)
-    # Somme des carrés centrés des abscisses
-    s_xx = sum((x - mean_x) ** 2 for x in xs_list)
+    mean_x, s_xx = _stats(xs_list)
     # Si toutes les abscisses sont identiques, la variance est nulle et la bande
     # de confiance serait indéfinie. Dans ce cas, on abandonne silencieusement.
     if math.isclose(s_xx, 0.0):
         return
-    # Calcule les résidus sur les données
-    residuals = [y - estimatePrice(x, theta0, theta1) for x, y in data]
-    # Estime la variance des erreurs (sigma²)
-    sigma2 = sum(r**2 for r in residuals) / (len(xs_list) - 2)
-    # Écarte type résiduel
-    sigma = math.sqrt(sigma2)
-    # Génère 101 points réguliers pour la bande
-    line_x = [
-        min(xs_list) + (max(xs_list) - min(xs_list)) * i / 100 for i in range(101)
-    ]
-    # Calcule ŷ pour chaque point de la grille
+    sigma = _residual_sigma(data, theta0, theta1, len(xs_list))
+    line_x = _band_grid(xs_list)
     y_hat_band = [estimatePrice(x, theta0, theta1) for x in line_x]
-    # Convertit le niveau en quantile normal (bilatéral)
     z = NormalDist().inv_cdf(0.5 + level / 2)
-    # Calcule l’erreur standard de prédiction pointwise
-    se = [
-        sigma * math.sqrt(1 / len(xs_list) + ((x - mean_x) ** 2) / s_xx) for x in line_x
-    ]
-    # Borne inférieure de la bande
-    lower = [y - z * e for y, e in zip(y_hat_band, se)]
-    # Borne supérieure de la bande
-    upper = [y + z * e for y, e in zip(y_hat_band, se)]
-    # Colore la zone de confiance autour de la droite
+    se = _std_errors(line_x, xs_list, sigma, mean_x, s_xx)
+    lower, upper = _band_bounds(y_hat_band, se, z)
     plt_mod.fill_between(line_x, lower, upper, color="red", alpha=0.1)
 
 

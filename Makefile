@@ -6,7 +6,7 @@
 #   - Fournir des commandes pratiques pour l’entraînement et la prédiction du modèle
 # ========================================================================================
 
-.PHONY: install lint format type test cov mut train predict-nocheck viz
+.PHONY: install lint format type test cov mut train predict-nocheck viz tv tv-all
 
 # Utilisation raccourcie de Poetry
 POETRY = poetry run
@@ -74,6 +74,15 @@ predict-nocheck:
 # Visualisation des données + droite (theta0 + theta1 * x)
 viz:
 	$(POETRY) python -m src.viz --data $(DATA) --theta $(THETA) --show-residuals --confidence
+
+# Usage interactif par liste : make tv data.csv data_noise.csv ...
+tv: $(addprefix tv-,$(filter-out $@,$(MAKECMDGOALS)))
+	@:
+
+# Règle unitaire : make tv-<fichier.csv>
+tv-%:
+	@$(MAKE) --no-print-directory train DATA=$* THETA=theta_$*.json
+	@$(MAKE) --no-print-directory viz   DATA=$* THETA=theta_$*.json
 
 # ----------------------------------------------------------------------------------------
 # Règle générique pour ignorer les cibles numériques (ex. make predict-nocheck 23000)

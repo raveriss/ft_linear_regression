@@ -190,6 +190,10 @@ def plot_confidence_band(
     mean_x = sum(xs_list) / len(xs_list)
     # Somme des carrés centrés des abscisses
     s_xx = sum((x - mean_x) ** 2 for x in xs_list)
+    # Si toutes les abscisses sont identiques, la variance est nulle et la bande
+    # de confiance serait indéfinie. Dans ce cas, on abandonne silencieusement.
+    if math.isclose(s_xx, 0.0):
+        return
     # Calcule les résidus sur les données
     residuals = [y - estimatePrice(x, theta0, theta1) for x, y in data]
     # Estime la variance des erreurs (sigma²)

@@ -285,3 +285,19 @@ def test_highlight_outliers(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> 
     assert calls[0]["kwargs"].get("label") == "data"
     assert calls[1]["kwargs"].get("label") == "outliers"
     assert calls[1]["kwargs"].get("color") == "orange"
+
+
+def test_plot_confidence_band_identical_points(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    plt = pytest.importorskip("matplotlib.pyplot")
+    called = {"fill_between": False}
+
+    def fake_fill_between(*_: object, **__: object) -> None:
+        called["fill_between"] = True
+
+    monkeypatch.setattr(plt, "fill_between", fake_fill_between)
+    xs = [50000.0] * 5
+    data = [(50000.0, 10000.0)] * 5
+    viz.plot_confidence_band(plt, xs, data, 0.0, 0.0, 0.95)
+    assert not called["fill_between"]

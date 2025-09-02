@@ -41,6 +41,7 @@ Implémenter **un premier algorithme de Machine Learning** : une **régression l
 estimatePrice(x) = θ₀ + θ₁ * x
 ```
 
+
 - **Deux programmes obligatoires** :  
   - `train.py` → entraîne le modèle (descente de gradient, mise à jour simultanée de θ).  
   - `predict.py` → prédit un prix à partir d’un kilométrage (0 avant entraînement).  

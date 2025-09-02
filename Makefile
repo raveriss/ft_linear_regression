@@ -84,6 +84,14 @@ tv-%:
 	@$(MAKE) --no-print-directory train DATA=$* THETA=theta_$*.json
 	@$(MAKE) --no-print-directory viz   DATA=$* THETA=theta_$*.json
 
+# Tout ce qui matche data*.csv
+tv-all:
+	@for f in data*.csv; do \
+	  b=$${f%.csv}; \
+	  $(MAKE) --no-print-directory train DATA=$$f THETA=theta_$${b}.json; \
+	  $(MAKE) --no-print-directory viz   DATA=$$f THETA=theta_$${b}.json; \
+	done
+
 # ----------------------------------------------------------------------------------------
 # Règle générique pour ignorer les cibles numériques (ex. make predict-nocheck 23000)
 # ----------------------------------------------------------------------------------------

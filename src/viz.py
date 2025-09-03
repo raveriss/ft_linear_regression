@@ -245,7 +245,8 @@ def plot_confidence_band(
     sigma = _residual_sigma(data, theta0, theta1, len(xs_list))
     line_x = _band_grid(xs_list)
     y_hat_band = [estimatePrice(x, theta0, theta1) for x in line_x]
-    # Calcule le quantile z de la loi normale pour le niveau de confiance (ex: 1.96 si 95 %).
+    # Calcule le quantile z de la loi normale pour le niveau de confiance.
+    # (ex: 1.96 si 95 %)
     z = NormalDist().inv_cdf(0.5 + level / 2)
     se = _std_errors(line_x, xs_list, sigma, mean_x, s_xx)
     lower, upper = _band_bounds(y_hat_band, se, z)

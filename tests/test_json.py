@@ -52,4 +52,4 @@ def test_parse_float_asserts_path() -> None:
 
 def test_parse_optional_float_asserts_path() -> None:
     with pytest.raises(AssertionError):
-        _parse_optional_float(0.0, None)  # type: ignore[arg-type]
+        _maybe_float(0.0, None)  # type: ignore[arg-type]

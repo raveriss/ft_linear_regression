@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from predict.predict import _parse_float, _parse_optional_float, load_theta
+from predict.predict import _parse_float, _maybe_float, load_theta
 from train.train import save_theta
 
 

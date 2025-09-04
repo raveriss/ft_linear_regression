@@ -17,7 +17,7 @@ def test_predict_then_train(tmp_path: Path) -> None:
 
     project_root = Path(__file__).resolve().parent.parent
     repo_root = project_root.parent if project_root.name == "mutants" else project_root
-    data_path = repo_root / "data.csv"
+    data_path = repo_root / "data/samples/data.csv"
 
     env = {k: v for k, v in os.environ.items() if not k.startswith("MUTMUT_")}
     original_path = env.get("PYTHONPATH", "")

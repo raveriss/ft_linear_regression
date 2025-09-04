@@ -5,12 +5,12 @@ from pathlib import Path
 def test_data_csv_parses_correctly() -> None:
     current = Path(__file__).resolve()
     for parent in [current.parent, *current.parents]:
-        candidate = parent / "data.csv"
+        candidate = parent / "data/samples/data.csv"
         if candidate.exists():
             path = candidate
             break
     else:  # pragma: no cover - defensive programming
-        raise FileNotFoundError("data.csv not found")
+        raise FileNotFoundError("data/samples/data.csv not found")
 
     content = path.read_bytes()
     content.decode("utf-8")

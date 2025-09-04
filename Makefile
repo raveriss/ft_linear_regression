@@ -12,7 +12,7 @@
 POETRY = poetry run
 
 # Paramètres par défaut (surchargables : make train DATA=... THETA=... ALPHA=... ITERS=...)
-DATA  ?= data.csv
+DATA  ?= data/samples/data.csv
 THETA ?= theta.json
 ALPHA ?= 0.1
 ITERS ?= 1000

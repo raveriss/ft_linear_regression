@@ -159,4 +159,5 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no mutate
 
 
 if __name__ == "__main__":  # pragma: no cover - module glue
+    # Propage code retour de main() au système (exit code ≠0 si échec métier).
     raise SystemExit(main())  # pragma: no mutate

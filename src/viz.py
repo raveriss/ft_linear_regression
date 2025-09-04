@@ -234,7 +234,9 @@ def plot_confidence_band(
 
     # Matérialise xs pour stats et bornes
     xs_list = list(xs)
-    # Si moins de 3 points, pas d’estimation fiable
+    # Minimum 3 points pour calculer un écart-type résiduel,
+    # degré de liberté (ddl) = n−2).
+    # Sinon la bande de confiance n’a pas de sens statistique → on abandonne.
     if len(xs_list) <= 2:
         return
     mean_x, s_xx = _stats(xs_list)

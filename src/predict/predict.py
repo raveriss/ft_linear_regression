@@ -119,12 +119,13 @@ def _parse_float(value: Any, theta_path: Path) -> float:
         raise SystemExit(2)
 
 
-def _parse_optional_float(value: Any, theta_path: Path) -> float | None:
+def _maybe_float(value: Any, theta_path: Path) -> float | None:
     """Gère la présence d’optionnels tout en validant les non-nuls."""
-    # Défense interne: garde le contexte fichier pour diagnostics.
+    # Vérifie qu’un chemin est fourni, sinon erreur interne.
     if theta_path is None:
         raise AssertionError
-    # Laisse None passer, sinon applique la validation stricte.
+    # Retourne None si valeur absente → distinction claire "pas de donnée".
+    # Sinon applique _parse_float pour valider/convertir en float sûr.
     return None if value is None else _parse_float(value, theta_path)
 
 
@@ -151,13 +152,13 @@ def load_theta(
     # Récupère la pente avec valeur par défaut sûre.
     theta1 = _parse_float(raw.get("theta1", 0.0), theta_path)
     # Charge la borne basse des km si stockée, sinon None.
-    min_km = _parse_optional_float(raw.get("min_km"), theta_path)
+    min_km = _maybe_float(raw.get("min_km"), theta_path)
     # Charge la borne haute des km si stockée, sinon None.
-    max_km = _parse_optional_float(raw.get("max_km"), theta_path)
+    max_km = _maybe_float(raw.get("max_km"), theta_path)
     # Charge la borne basse du prix si stockée, sinon None.
-    min_price = _parse_optional_float(raw.get("min_price"), theta_path)
+    min_price = _maybe_float(raw.get("min_price"), theta_path)
     # Charge la borne haute du prix si stockée, sinon None.
-    max_price = _parse_optional_float(raw.get("max_price"), theta_path)
+    max_price = _maybe_float(raw.get("max_price"), theta_path)
     # Retourne coefficients et bornes pour la prédiction et les warnings.
     return theta0, theta1, min_km, max_km, min_price, max_price
 

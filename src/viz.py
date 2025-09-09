@@ -96,50 +96,65 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def _line_points(
-    xs: Iterable[float], theta0: float, theta1: float
+    liste_abscisses: Iterable[float],
+    coefficient_intercept: float,
+    coefficient_pente: float,
 ) -> tuple[list[float], list[float]]:
-    """Return ``(x_points, y_points)`` for the regression line.
+    """Construit deux points de la droite de régression.
 
     But:
-        Déterminer les extrémités et valeurs de la droite ajustée.
+        Déterminer les extrémités de la droite ajustée.
     """
 
-    # Cherche l’abscisse minimale de l’échantillon
-    min_x = min(xs)
-    # Cherche l’abscisse maximale de l’échantillon
-    max_x = max(xs)
-    # Définit les deux points extrêmes à tracer
-    line_x = [min_x, max_x]
-    # Calcule ŷ sur ces deux abscisses pour la droite
-    line_y = [estimatePrice(x, theta0, theta1) for x in line_x]
-    return line_x, line_y
+    # Identifie l'abscisse minimale de l'échantillon
+    abscisse_minimale = min(liste_abscisses)
+    # Identifie l'abscisse maximale de l'échantillon
+    abscisse_maximale = max(liste_abscisses)
+    # Définit la liste des deux abscisses extrêmes
+    liste_abscisses_extremes = [abscisse_minimale, abscisse_maximale]
+    # Calcule les ordonnées correspondantes via le modèle
+    liste_ordonnees_extremes = [
+        estimatePrice(abscisse, coefficient_intercept, coefficient_pente)
+        for abscisse in liste_abscisses_extremes
+    ]
+    # Retourne les deux listes synchronisées (x, y)
+    return liste_abscisses_extremes, liste_ordonnees_extremes
 
 
 def plot_regression_line(
-    ax: Any,
-    xs: Iterable[float],
-    theta0: float,
-    theta1: float,
-    show_eq: bool,
+    axes_courants: Any,
+    liste_abscisses: Iterable[float],
+    coefficient_intercept: float,
+    coefficient_pente: float,
+    afficher_equation: bool,
 ) -> None:
-    """Plot the regression line on ``ax`` and optionally annotate its equation.
+    """Trace la droite de régression et optionnellement son équation.
 
     But:
-        Afficher la droite et, si demandé, son équation.
+        Visualiser la droite ajustée et annoter sa formule.
     """
 
-    # Prépare les deux points extrêmes de la droite
-    line_x, line_y = _line_points(xs, theta0, theta1)
-    ax.plot(line_x, line_y, color="red", label="theta0 + theta1 * x")
-    # Trace la droite sur les axes courants
+    # Calcule les deux points extrêmes de la droite de régression
+    liste_abscisses_extremes, liste_ordonnees_extremes = _line_points(
+        liste_abscisses, coefficient_intercept, coefficient_pente
+    )
+    # Trace la droite rouge sur les axes
+    axes_courants.plot(
+        liste_abscisses_extremes,
+        liste_ordonnees_extremes,
+        color="red",
+        label="theta0 + theta1 * x",
+    )
 
-    # Ajoute l’annotation de l’équation si activée
-    if show_eq:
-        # Formate l’équation pour une lecture rapide
-        equation = f"price = {theta0:.2f} + {theta1:.2f} * km"
-        # Positionne le texte relatif au cadre des axes
-        ax.annotate(
-            equation,
+    # Vérifie si l'affichage de l'équation est demandé
+    if afficher_equation:
+        # Formate l'équation de la droite pour affichage lisible
+        texte_equation = (
+            f"price = {coefficient_intercept:.2f} + {coefficient_pente:.2f} * km"
+        )
+        # Positionne l'équation dans le repère des axes
+        axes_courants.annotate(
+            texte_equation,
             xy=(0.05, 0.95),
             xycoords="axes fraction",
             ha="left",
@@ -148,23 +163,27 @@ def plot_regression_line(
 
 
 def plot_residuals(
-    plt_mod: Any,
-    data: Iterable[tuple[float, float]],
-    theta0: float,
-    theta1: float,
+    module_matplotlib: Any,
+    donnees_points: Iterable[tuple[float, float]],
+    coefficient_intercept: float,
+    coefficient_pente: float,
 ) -> None:
-    """Display vertical lines between actual and predicted values.
+    """Trace les segments verticaux des résidus.
 
     But:
-        Visualiser l’écart y - ŷ pour chaque point.
+        Visualiser l'écart entre valeur réelle et prédiction.
     """
 
-    # Itère sur chaque point pour tracer le résidu
-    for x, y in data:
-        # Calcule la prédiction pour l’abscisse
-        y_hat = estimatePrice(x, theta0, theta1)
-        # Trace un segment vertical entre y et ŷ
-        plt_mod.vlines(x, y, y_hat, colors="gray", linewidth=0.5)
+    # Parcourt chaque point du jeu de données
+    for abscisse, ordonnee in donnees_points:
+        # Calcule la valeur prédite par le modèle
+        ordonnee_predite = estimatePrice(
+            abscisse, coefficient_intercept, coefficient_pente
+        )
+        # Trace un segment vertical entre la valeur réelle et la prédite
+        module_matplotlib.vlines(
+            abscisse, ordonnee, ordonnee_predite, colors="gray", linewidth=0.5
+        )
 
 
 def _stats(valeurs: Sequence[float]) -> tuple[float, float]:
@@ -202,200 +221,317 @@ def _ecart_type_residus(
     return math.sqrt(variance)
 
 
-def _band_grid(xs_list: Sequence[float]) -> list[float]:
-    """Return regular grid covering ``xs_list`` range."""
+def _band_grid(abscisses_observees: Sequence[float]) -> list[float]:
+    """Grille régulière sur l'intervalle des abscisses observées.
 
-    min_x, max_x = min(xs_list), max(xs_list)
-    return [min_x + (max_x - min_x) * i / 100 for i in range(101)]
+    But:
+        Générer 101 points uniformes entre min et max des abscisses.
+    """
+
+    # Calcule la borne min; exige séquence non vide; ValueError sinon
+    borne_min_abscisse = min(abscisses_observees)
+    # Calcule la borne max; même hypothèse; O(n) temps cumulé min+max
+    borne_max_abscisse = max(abscisses_observees)
+    # Construit la grille dans [min,max]; 101 points; O(101) mémoire
+    # NaN/inf dans les bornes se propagent dans le résultat
+    # Si min == max: renvoie 101 copies de la même valeur; acceptable
+    return [
+        # Interpolation linéaire entre bornes avec pas 1/100
+        borne_min_abscisse + (borne_max_abscisse - borne_min_abscisse) * indice / 100
+        # Itère indice 0..100 pour espacement égal
+        for indice in range(101)
+    ]
 
 
 def _std_errors(
-    line_x: Sequence[float],
-    xs_list: Sequence[float],
-    sigma: float,
-    mean_x: float,
-    s_xx: float,
+    liste_points_cible: Sequence[float],
+    liste_points_regression: Sequence[float],
+    ecart_type_residus: float,
+    moyenne_points_regression: float,
+    somme_carre_centre: float,
 ) -> list[float]:
-    """Return pointwise standard errors for ``line_x``."""
+    """Calcule les erreurs standard ponctuelles.
 
-    n = len(xs_list)
-    return [sigma * math.sqrt(1 / n + ((x - mean_x) ** 2) / s_xx) for x in line_x]
+    But:
+        Fournir l'incertitude des prédictions pour chaque abscisse.
+    """
+
+    # Mesure la taille de l'échantillon pour la régression
+    nombre_points_regression = len(liste_points_regression)
+    # Calcule l'erreur standard pour chaque point cible
+    return [
+        ecart_type_residus
+        * math.sqrt(
+            1 / nombre_points_regression
+            + ((point_cible - moyenne_points_regression) ** 2) / somme_carre_centre
+        )
+        for point_cible in liste_points_cible
+    ]
 
 
 def _band_bounds(
-    y_hat_band: Sequence[float], se: Sequence[float], z: float
+    liste_predictions: Sequence[float],
+    liste_erreurs_standard: Sequence[float],
+    quantile_normal: float,
 ) -> tuple[list[float], list[float]]:
-    """Return lower and upper bounds of the band."""
+    """Calcule les bornes inférieure et supérieure de la bande.
 
-    lower = [y - z * e for y, e in zip(y_hat_band, se)]
-    upper = [y + z * e for y, e in zip(y_hat_band, se)]
-    return lower, upper
+    But:
+        Définir l'intervalle de confiance autour des prédictions.
+    """
+
+    # Borne inférieure = prédiction - marge (quantile × erreur standard)
+    liste_bornes_inferieures = [
+        prediction - quantile_normal * erreur_standard
+        for prediction, erreur_standard in zip(
+            liste_predictions, liste_erreurs_standard
+        )
+    ]
+    # Borne supérieure = prédiction + marge (quantile × erreur standard)
+    liste_bornes_superieures = [
+        prediction + quantile_normal * erreur_standard
+        for prediction, erreur_standard in zip(
+            liste_predictions, liste_erreurs_standard
+        )
+    ]
+    # Retourne les deux bornes pour chaque point prédictif
+    return liste_bornes_inferieures, liste_bornes_superieures
 
 
 def plot_confidence_band(
-    plt_mod: Any,
-    xs: Iterable[float],
-    data: Iterable[tuple[float, float]],
-    theta0: float,
-    theta1: float,
-    level: float,
+    module_matplotlib: Any,
+    abscisses_iterable: Iterable[float],
+    donnees_points: Iterable[tuple[float, float]],
+    coefficient_intercept: float,
+    coefficient_pente: float,
+    niveau_confiance: float,
 ) -> None:
-    """Shade the prediction confidence band at the given level.
+    """Trace la bande de confiance autour de la régression.
 
     But:
-        Afficher l’incertitude de prédiction au niveau donné.
+        Visualiser l'incertitude prédictive pour un niveau donné.
     """
 
-    # Matérialise xs pour stats et bornes
-    xs_list = list(xs)
-    # Minimum 3 points pour calculer un écart-type résiduel,
-    # degré de liberté (ddl) = n−2).
-    # Sinon la bande de confiance n’a pas de sens statistique → on abandonne.
-    if len(xs_list) <= 2:
+    # Convertit l'itérable d'abscisses en liste exploitable
+    liste_abscisses = list(abscisses_iterable)
+    # Vérifie qu'il y a au moins 3 points, sinon variance résiduelle invalide
+    if len(liste_abscisses) <= 2:
         return
-    mean_x, s_xx = _stats(xs_list)
-    # Si toutes les abscisses sont identiques, la variance est nulle et la bande
-    # de confiance serait indéfinie. Dans ce cas, on abandonne silencieusement.
-    if math.isclose(s_xx, 0.0):
+    # Calcule la moyenne et la somme des carrés centrés
+    moyenne_abscisses, somme_carre_centre = _stats(liste_abscisses)
+    # Vérifie que la variance des abscisses n'est pas nulle
+    if math.isclose(somme_carre_centre, 0.0):
         return
-    sigma = _ecart_type_residus(data, theta0, theta1, len(xs_list))
-    line_x = _band_grid(xs_list)
-    y_hat_band = [estimatePrice(x, theta0, theta1) for x in line_x]
-    # Calcule le quantile z de la loi normale pour le niveau de confiance.
-    # (ex: 1.96 si 95 %)
-    z = NormalDist().inv_cdf(0.5 + level / 2)
-    se = _std_errors(line_x, xs_list, sigma, mean_x, s_xx)
-    lower, upper = _band_bounds(y_hat_band, se, z)
-    plt_mod.fill_between(line_x, lower, upper, color="red", alpha=0.1)
+    # Estime l'écart-type des résidus selon les coefficients et données
+    ecart_type_residus = _ecart_type_residus(
+        donnees_points,
+        coefficient_intercept,
+        coefficient_pente,
+        len(liste_abscisses),
+    )
+    # Crée une grille régulière d'abscisses pour tracer la bande
+    grille_abscisses = _band_grid(liste_abscisses)
+    # Calcule les prédictions du modèle sur la grille
+    liste_predictions = [
+        estimatePrice(abscisse, coefficient_intercept, coefficient_pente)
+        for abscisse in grille_abscisses
+    ]
+    # Calcule le quantile z correspondant au niveau de confiance choisi
+    quantile_normal = NormalDist().inv_cdf(0.5 + niveau_confiance / 2)
+    # Calcule les erreurs standard ponctuelles
+    liste_erreurs_standard = _std_errors(
+        grille_abscisses,
+        liste_abscisses,
+        ecart_type_residus,
+        moyenne_abscisses,
+        somme_carre_centre,
+    )
+    # Calcule les bornes inférieures et supérieures de la bande
+    liste_bornes_inferieures, liste_bornes_superieures = _band_bounds(
+        liste_predictions, liste_erreurs_standard, quantile_normal
+    )
+    # Dessine la zone ombrée représentant la bande de confiance
+    module_matplotlib.fill_between(
+        grille_abscisses,
+        liste_bornes_inferieures,
+        liste_bornes_superieures,
+        color="red",
+        alpha=0.1,
+    )
 
 
-def plot_central_tendency(plt_mod: Any, ys: Sequence[float], show_median: bool) -> None:
-    """Draw mean and optionally median of ``ys``.
+def plot_central_tendency(
+    module_matplotlib: Any,
+    liste_ordonnees: Sequence[float],
+    afficher_mediane: bool,
+) -> None:
+    """Trace la moyenne et éventuellement la médiane des valeurs.
 
     But:
-        Visualiser tendance centrale pour lecture rapide.
+        Montrer rapidement la tendance centrale des données.
     """
 
-    # Calcule la moyenne des ordonnées
-    mean_y = sum(ys) / len(ys)
-    # Trace la ligne horizontale de la moyenne
-    plt_mod.axhline(mean_y, color="blue", linestyle="--", label="mean(y)")
-    # Optionnellement trace la médiane
-    if show_median:
-        # Calcule la médiane (robuste aux outliers)
-        median_y = median(ys)
-        # Trace la ligne horizontale de la médiane
-        plt_mod.axhline(median_y, color="green", linestyle=":", label="median(y)")
+    # Calcule la moyenne arithmétique des valeurs
+    moyenne_ordonnees = sum(liste_ordonnees) / len(liste_ordonnees)
+    # Trace une ligne horizontale représentant la moyenne
+    module_matplotlib.axhline(
+        moyenne_ordonnees, color="blue", linestyle="--", label="moyenne(y)"
+    )
+    # Vérifie si l'option d'affichage de la médiane est activée
+    if afficher_mediane:
+        # Calcule la médiane, robuste aux valeurs extrêmes
+        mediane_ordonnees = median(liste_ordonnees)
+        # Trace une ligne horizontale représentant la médiane
+        module_matplotlib.axhline(
+            mediane_ordonnees, color="green", linestyle=":", label="mediane(y)"
+        )
 
 
 def split_outliers(
-    data: Sequence[tuple[float, float]],
-    theta0: float,
-    theta1: float,
-    k: float,
+    donnees_points: Sequence[tuple[float, float]],
+    coefficient_intercept: float,
+    coefficient_pente: float,
+    seuil_ecart_type: float,
 ) -> tuple[list[tuple[float, float]], list[tuple[float, float]]]:
-    """Return ``(inliers, outliers)`` based on residual standard deviation.
+    """Sépare les points en inliers et outliers.
 
     But:
-        Séparer points selon |résidu| ≤/> k·σ pour styliser le nuage.
+        Identifier les points atypiques selon |résidu| ≤/> k·σ.
     """
 
-    # Calcule les résidus sur l’échantillon
-    residuals = [y - estimatePrice(x, theta0, theta1) for x, y in data]
-    # Estime σ des résidus (0 si <2 points)
-    sigma = stdev(residuals) if len(residuals) > 1 else 0.0
-    # Conserve points dont le résidu est dans k·σ
-    inliers = [(x, y) for (x, y), r in zip(data, residuals) if abs(r) <= k * sigma]
-    # Marque points dont le résidu dépasse k·σ
-    outliers = [(x, y) for (x, y), r in zip(data, residuals) if abs(r) > k * sigma]
-    return inliers, outliers
+    # Calcule les résidus = écart entre valeur réelle et prédiction
+    liste_residus = [
+        ordonnee - estimatePrice(abscisse, coefficient_intercept, coefficient_pente)
+        for abscisse, ordonnee in donnees_points
+    ]
+    # Estime l'écart-type des résidus si au moins 2 points
+    ecart_type_residus = stdev(liste_residus) if len(liste_residus) > 1 else 0.0
+    # Conserve les points dont le résidu est inférieur au seuil k·σ
+    liste_inliers = [
+        (abscisse, ordonnee)
+        for (abscisse, ordonnee), residu in zip(donnees_points, liste_residus)
+        if abs(residu) <= seuil_ecart_type * ecart_type_residus
+    ]
+    # Conserve les points dont le résidu dépasse le seuil k·σ
+    liste_outliers = [
+        (abscisse, ordonnee)
+        for (abscisse, ordonnee), residu in zip(donnees_points, liste_residus)
+        if abs(residu) > seuil_ecart_type * ecart_type_residus
+    ]
+    # Retourne les deux groupes de points
+    return liste_inliers, liste_outliers
 
 
 def plot_points(
-    plt_mod: Any,
-    inliers: Sequence[tuple[float, float]],
-    outliers: Sequence[tuple[float, float]],
+    module_matplotlib: Any,
+    liste_inliers: Sequence[tuple[float, float]],
+    liste_outliers: Sequence[tuple[float, float]],
 ) -> None:
-    """Scatter inliers and outliers with appropriate colors.
+    """Trace un nuage de points avec inliers et outliers.
 
     But:
-        Dessiner nuage de points et surligner les outliers.
+        Visualiser données et mettre en évidence les outliers.
     """
 
-    # Dispersion des inliers si présents
-    if inliers:
-        # Trace les inliers sans couleur forcée
-        plt_mod.scatter(
-            [x for x, _ in inliers],
-            [y for _, y in inliers],
-            label="data",
+    # Vérifie si des inliers existent
+    if liste_inliers:
+        # Dispersion des inliers sans couleur spécifique
+        module_matplotlib.scatter(
+            [abscisse for abscisse, _ in liste_inliers],
+            [ordonnee for _, ordonnee in liste_inliers],
+            label="donnees",
         )
-    # Dispersion des outliers si présents
-    if outliers:
-        # Trace les outliers avec couleur distinctive
-        plt_mod.scatter(
-            [x for x, _ in outliers],
-            [y for _, y in outliers],
+    # Vérifie si des outliers existent
+    if liste_outliers:
+        # Dispersion des outliers avec couleur distinctive
+        module_matplotlib.scatter(
+            [abscisse for abscisse, _ in liste_outliers],
+            [ordonnee for _, ordonnee in liste_outliers],
             color="orange",
             label="outliers",
         )
 
 
-def main(argv: list[str] | None = None) -> None:
-    """Visualize the dataset and the line defined by ``theta0 + theta1 * x``.
+def main(arguments_ligne_commande: list[str] | None = None) -> None:
+    """Visualise le jeu de données et la droite θ0 + θ1·x.
 
     But:
-        Orchestrer chargement, évaluation et tracés Matplotlib.
+        Charger, évaluer et tracer les éléments avec Matplotlib.
     """
 
-    # Parse les arguments passés à la commande
-    args = _build_parser().parse_args(argv)
-    # Charge et valide les données depuis le CSV
-    data = read_data(Path(args.data))
-    # Charge theta et ignore champs additionnels
-    theta0, theta1, *_ = load_theta(args.theta)
-    # Calcule RMSE et R² pour annotation
-    rmse, r2 = evaluate(args.data, args.theta)
-    # Extrait la liste des abscisses
-    xs = [x for x, _ in data]
-    # Extrait la liste des ordonnées
-    ys = [y for _, y in data]
-    # Sépare inliers/outliers selon k·σ
-    inliers, outliers = split_outliers(data, theta0, theta1, args.sigma_k)
+    # Construit l'analyseur d'arguments et lit les options
+    arguments = _build_parser().parse_args(arguments_ligne_commande)
+    # Charge et valide les données depuis le fichier CSV
+    donnees_points = read_data(Path(arguments.data))
+    # Charge les coefficients du modèle et ignore champs additionnels
+    coefficient_intercept, coefficient_pente, *_ = load_theta(arguments.theta)
+    # Calcule RMSE et R² pour évaluer le modèle
+    racine_mse, coefficient_determination = evaluate(arguments.data, arguments.theta)
+    # Extrait la liste des abscisses des données
+    liste_abscisses = [abscisse for abscisse, _ in donnees_points]
+    # Extrait la liste des ordonnées des données
+    liste_ordonnees = [ordonnee for _, ordonnee in donnees_points]
+    # Sépare les points inliers et outliers selon le seuil k·σ
+    liste_inliers, liste_outliers = split_outliers(
+        donnees_points,
+        coefficient_intercept,
+        coefficient_pente,
+        arguments.sigma_k,
+    )
 
     # Neutralise le typage de plt pour appels dynamiques
-    plt_any = cast(Any, plt)
-    # Trace les points avec style outliers
-    plot_points(plt_any, inliers, outliers)
+    module_matplotlib = cast(Any, plt)
+    # Trace les inliers et outliers
+    plot_points(module_matplotlib, liste_inliers, liste_outliers)
     # Récupère les axes courants pour tracer la droite
-    ax = plt_any.gca()
-    # Si demandé, trace les segments de résidu
-    if args.show_residuals:
-        plot_residuals(plt_any, data, theta0, theta1)
-    # Si niveau fourni, affiche la bande de confiance
-    if args.confidence is not None:
-        plot_confidence_band(plt_any, xs, data, theta0, theta1, args.confidence)
-    # Trace la droite de régression et optionnellement l’équation
-    plot_regression_line(ax, xs, theta0, theta1, args.show_eq)
-    # Trace moyenne et éventuellement médiane des y
-    plot_central_tendency(plt_any, ys, args.show_median)
+    axes_courants = module_matplotlib.gca()
+    # Si demandé, trace les segments représentant les résidus
+    if arguments.show_residuals:
+        plot_residuals(
+            module_matplotlib,
+            donnees_points,
+            coefficient_intercept,
+            coefficient_pente,
+        )
+    # Si un niveau de confiance est défini, trace la bande correspondante
+    if arguments.confidence is not None:
+        plot_confidence_band(
+            module_matplotlib,
+            liste_abscisses,
+            donnees_points,
+            coefficient_intercept,
+            coefficient_pente,
+            arguments.confidence,
+        )
+    # Trace la droite de régression et éventuellement son équation
+    plot_regression_line(
+        axes_courants,
+        liste_abscisses,
+        coefficient_intercept,
+        coefficient_pente,
+        arguments.show_eq,
+    )
+    # Trace la moyenne et éventuellement la médiane des ordonnées
+    plot_central_tendency(module_matplotlib, liste_ordonnees, arguments.show_median)
 
-    # Ajoute un titre synthétique avec métriques clés
-    plt_any.suptitle(f"RMSE: {rmse:.2f}, R2: {r2:.2f}")
+    # Ajoute un titre synthétique avec les métriques d'évaluation
+    module_matplotlib.suptitle(
+        f"RMSE: {racine_mse:.2f}, R2: {coefficient_determination:.2f}"
+    )
 
-    # Étiquette l’axe des abscisses en kilomètres
-    plt_any.xlabel("km")
-    # Étiquette l’axe des ordonnées en prix
-    plt_any.ylabel("price")
+    # Étiquette l'axe des abscisses en kilomètres
+    module_matplotlib.xlabel("km")
+    # Étiquette l'axe des ordonnées en prix
+    module_matplotlib.ylabel("price")
 
-    # Récupère labels pour décider d’afficher la légende
-    _, labels = ax.get_legend_handles_labels()  # évite reportUnusedVariable
-    # Affiche la légende seulement si au moins un label existe
-    if any(labels):
-        plt_any.legend()
+    # Récupère labels pour décider si légende à afficher
+    _, liste_labels = axes_courants.get_legend_handles_labels()
+    # Affiche la légende si au moins un label est présent
+    if any(liste_labels):
+        module_matplotlib.legend()
 
-    # Ouvre la fenêtre de rendu des figures
-    plt_any.show()
+    # Ouvre la fenêtre de rendu graphique
+    module_matplotlib.show()
 
 
 # Autorise l’exécution comme script utilitaire

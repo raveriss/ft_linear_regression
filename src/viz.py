@@ -167,25 +167,39 @@ def plot_residuals(
         plt_mod.vlines(x, y, y_hat, colors="gray", linewidth=0.5)
 
 
-def _stats(xs_list: Sequence[float]) -> tuple[float, float]:
-    """Return mean of ``xs_list`` and centered sum of squares."""
+def _stats(valeurs: Sequence[float]) -> tuple[float, float]:
+    """Compute mean and centered sum of squares.
 
-    mean_x = sum(xs_list) / len(xs_list)
-    s_xx = sum((x - mean_x) ** 2 for x in xs_list)
-    return mean_x, s_xx
+    But:
+        Fournir la moyenne et la somme des carrés centrés pour valeurs.
+    """
+
+    # Calcule la moyenne, suppose valeurs non vide
+    moyenne = sum(valeurs) / len(valeurs)
+    # Calcule somme des écarts², risque NaN/inf si valeurs contient tel
+    somme_ecarts_carres = sum((valeur - moyenne) ** 2 for valeur in valeurs)
+    # Retourne couple (moyenne, somme carrés centrés)
+    return moyenne, somme_ecarts_carres
 
 
-def _residual_sigma(
-    data: Iterable[tuple[float, float]],
-    theta0: float,
-    theta1: float,
-    n: int,
+def _ecart_type_residus(
+    donnees: Iterable[tuple[float, float]],
+    intercept: float,
+    pente: float,
+    taille_echantillon: int,
 ) -> float:
-    """Return standard deviation of residuals."""
+    """Retourne l'écart-type des résidus.
 
-    residuals = [y - estimatePrice(x, theta0, theta1) for x, y in data]
-    sigma2 = sum(r**2 for r in residuals) / (n - 2)
-    return math.sqrt(sigma2)
+    But:
+        Mesurer la dispersion des écarts entre valeurs observées et prédites.
+    """
+
+    residus = [
+        valeur_observee - estimatePrice(valeur_entree, intercept, pente)
+        for valeur_entree, valeur_observee in donnees
+    ]
+    variance = sum(residu**2 for residu in residus) / (taille_echantillon - 2)
+    return math.sqrt(variance)
 
 
 def _band_grid(xs_list: Sequence[float]) -> list[float]:
@@ -244,7 +258,7 @@ def plot_confidence_band(
     # de confiance serait indéfinie. Dans ce cas, on abandonne silencieusement.
     if math.isclose(s_xx, 0.0):
         return
-    sigma = _residual_sigma(data, theta0, theta1, len(xs_list))
+    sigma = _ecart_type_residus(data, theta0, theta1, len(xs_list))
     line_x = _band_grid(xs_list)
     y_hat_band = [estimatePrice(x, theta0, theta1) for x in line_x]
     # Calcule le quantile z de la loi normale pour le niveau de confiance.

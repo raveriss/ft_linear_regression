@@ -6,7 +6,14 @@
 #   - Fournir des commandes pratiques pour l’entraînement et la prédiction du modèle
 # ========================================================================================
 
-.PHONY: install lint format type test cov mut train predict-nocheck viz tv tv-all
+.PHONY: install lint format type test cov mut train predict-nocheck viz tv-bench-all tv-bench-% activate deactivate
+
+VENV = .venv
+VENV_BIN = $(VENV)/bin/activate
+
+# --- Benchmarks ---------------------------------------------------------------
+BENCH_DIR   := data/benchmarks
+BENCH_CSVS  := $(wildcard $(BENCH_DIR)/*.csv)
 
 # Utilisation raccourcie de Poetry
 POETRY = poetry run
@@ -75,22 +82,36 @@ predict-nocheck:
 viz:
 	$(POETRY) python -m src.viz --data $(DATA) --theta $(THETA) --show-residuals --confidence
 
-# Usage interactif par liste : make tv data.csv data_noise.csv ...
-tv: $(addprefix tv-,$(filter-out $@,$(MAKECMDGOALS)))
-	@:
-
-# Règle unitaire : make tv-<fichier.csv>
-tv-%:
-	@$(MAKE) --no-print-directory train DATA=$* THETA=theta_$*.json
-	@$(MAKE) --no-print-directory viz   DATA=$* THETA=theta_$*.json
-
-# Tout ce qui matche data*.csv
-tv-all:
-	@for f in data*.csv; do \
-	  b=$${f%.csv}; \
-	  $(MAKE) --no-print-directory train DATA=$$f THETA=theta_$${b}.json; \
-	  $(MAKE) --no-print-directory viz   DATA=$$f THETA=theta_$${b}.json; \
+# Tous les CSV de benchmarks : train + viz pour chacun
+tv-bench-all:
+	@set -e; \
+	for f in $(BENCH_CSVS); do \
+		b=$$(basename "$$f" .csv); \
+		theta="theta_$${b}.json"; \
+		echo "==> $$b"; \
+		$(POETRY) train --data "$$f" --alpha $(ALPHA) --iters $(ITERS) --theta "$$theta"; \
+		$(POETRY) python -m src.viz --data "$$f" --theta "$$theta" --show-residuals --confidence; \
 	done
+
+# Un dataset précis par nom de fichier sans extension
+tv-bench-%:
+	@set -e; \
+	f="$(BENCH_DIR)/$*.csv"; \
+	test -f "$$f" || { echo "absent: $$f"; exit 1; }; \
+	theta="theta_$*.json"; \
+	echo "==> $*"; \
+	$(POETRY) train --data "$$f" --alpha $(ALPHA) --iters $(ITERS) --theta "$$theta"; \
+	$(POETRY) python -m src.viz --data "$$f" --theta "$$theta" --show-residuals --confidence
+
+# Affiche la commande pour activer le venv
+activate:
+	@echo "Pour activer l'environnement :"
+	@echo "  source $(PWD)/$(VENV_BIN)"
+
+# Affiche la commande pour désactiver le venv
+deactivate:
+	@echo "Pour quitter l'environnement :"
+	@echo "  deactivate"
 
 # ----------------------------------------------------------------------------------------
 # Règle générique pour ignorer les cibles numériques (ex. make predict-nocheck 23000)

@@ -100,7 +100,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         "eval": (str(data), str(theta)),
         "suptitle": "RMSE: 0.00, R2: 1.00",
         "vlines": 0,
-        "axhlines": [(1.0, "mean(y)")],
+        "axhlines": [(1.0, "moyenne(y)")],
         "fill_between": 0,
     }
 
@@ -126,7 +126,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         "eval": (str(data), str(theta)),
         "suptitle": "RMSE: 0.00, R2: 1.00",
         "vlines": 0,
-        "axhlines": [(1.0, "mean(y)")],
+        "axhlines": [(1.0, "moyenne(y)")],
         "fill_between": 0,
     }
 
@@ -158,7 +158,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         "eval": (str(data), str(theta)),
         "suptitle": "RMSE: 0.00, R2: 1.00",
         "vlines": 3,
-        "axhlines": [(1.0, "mean(y)")],
+        "axhlines": [(1.0, "moyenne(y)")],
         "fill_between": 0,
     }
 
@@ -190,7 +190,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         "eval": (str(data), str(theta)),
         "suptitle": "RMSE: 0.00, R2: 1.00",
         "vlines": 0,
-        "axhlines": [(1.0, "mean(y)"), (1.0, "median(y)")],
+        "axhlines": [(1.0, "moyenne(y)"), (1.0, "mediane(y)")],
         "fill_between": 0,
     }
 
@@ -222,7 +222,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         "eval": (str(data), str(theta)),
         "suptitle": "RMSE: 0.00, R2: 1.00",
         "vlines": 0,
-        "axhlines": [(1.0, "mean(y)")],
+        "axhlines": [(1.0, "moyenne(y)")],
         "fill_between": 1,
     }
 
@@ -282,7 +282,7 @@ def test_highlight_outliers(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> 
     viz.main(["--data", str(data), "--theta", str(theta)])
 
     assert len(calls) == 2
-    assert calls[0]["kwargs"].get("label") == "data"
+    assert calls[0]["kwargs"].get("label") == "donnees"
     assert calls[1]["kwargs"].get("label") == "outliers"
     assert calls[1]["kwargs"].get("color") == "orange"
 

@@ -96,34 +96,34 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def _line_points(
-    liste_abscisses: Iterable[float],
+    liste_kilometres: Iterable[float],
     coefficient_intercept: float,
     coefficient_pente: float,
 ) -> tuple[list[float], list[float]]:
     """Construit deux points de la droite de régression.
 
     But:
-        Déterminer les extrémités de la droite ajustée.
+        Déterminer les extrémités de la droite ajustée (km, prix).
     """
 
-    # Identifie l'abscisse minimale de l'échantillon
-    abscisse_minimale = min(liste_abscisses)
-    # Identifie l'abscisse maximale de l'échantillon
-    abscisse_maximale = max(liste_abscisses)
-    # Définit la liste des deux abscisses extrêmes
-    liste_abscisses_extremes = [abscisse_minimale, abscisse_maximale]
-    # Calcule les ordonnées correspondantes via le modèle
-    liste_ordonnees_extremes = [
-        estimatePrice(abscisse, coefficient_intercept, coefficient_pente)
-        for abscisse in liste_abscisses_extremes
+    # Identifie le kilomètre minimal de l'échantillon
+    km_min = min(liste_kilometres)
+    # Identifie le kilomètre maximal de l'échantillon
+    km_max = max(liste_kilometres)
+    # Définit la liste des deux kilomètres extrêmes
+    kilometres_extremes = [km_min, km_max]
+    # Calcule les prix correspondants via le modèle
+    prix_extremes = [
+        estimatePrice(km, coefficient_intercept, coefficient_pente)
+        for km in kilometres_extremes
     ]
-    # Retourne les deux listes synchronisées (x, y)
-    return liste_abscisses_extremes, liste_ordonnees_extremes
+    # Retourne les deux listes synchronisées (km, prix)
+    return kilometres_extremes, prix_extremes
 
 
 def plot_regression_line(
     axes_courants: Any,
-    liste_abscisses: Iterable[float],
+    liste_kilometres: Iterable[float],
     coefficient_intercept: float,
     coefficient_pente: float,
     afficher_equation: bool,
@@ -135,15 +135,16 @@ def plot_regression_line(
     """
 
     # Calcule les deux points extrêmes de la droite de régression
-    liste_abscisses_extremes, liste_ordonnees_extremes = _line_points(
-        liste_abscisses, coefficient_intercept, coefficient_pente
+    kilometres_extremes, prix_extremes = _line_points(
+        liste_kilometres, coefficient_intercept, coefficient_pente
     )
+
     # Trace la droite rouge sur les axes
     axes_courants.plot(
-        liste_abscisses_extremes,
-        liste_ordonnees_extremes,
+        kilometres_extremes,
+        prix_extremes,
         color="red",
-        label="theta0 + theta1 * x",
+        label="theta0 + theta1 * km",
     )
 
     # Vérifie si l'affichage de l'équation est demandé
@@ -164,25 +165,23 @@ def plot_regression_line(
 
 def plot_residuals(
     module_matplotlib: Any,
-    donnees_points: Iterable[tuple[float, float]],
+    donnees_reelles: Iterable[tuple[float, float]],
     coefficient_intercept: float,
     coefficient_pente: float,
 ) -> None:
     """Trace les segments verticaux des résidus.
 
     But:
-        Visualiser l'écart entre valeur réelle et prédiction.
+        Visualiser l'écart entre prix réel et prix prédit en fonction du kilométrage.
     """
 
-    # Parcourt chaque point du jeu de données
-    for abscisse, ordonnee in donnees_points:
-        # Calcule la valeur prédite par le modèle
-        ordonnee_predite = estimatePrice(
-            abscisse, coefficient_intercept, coefficient_pente
-        )
-        # Trace un segment vertical entre la valeur réelle et la prédite
+    # Parcourt chaque point du jeu de données (km, prix réel)
+    for kilometre, prix_reel in donnees_reelles:
+        # Calcule le prix prédit par le modèle
+        prix_prevu = estimatePrice(kilometre, coefficient_intercept, coefficient_pente)
+        # Trace un segment vertical entre prix réel et prix prédit
         module_matplotlib.vlines(
-            abscisse, ordonnee, ordonnee_predite, colors="gray", linewidth=0.5
+            kilometre, prix_reel, prix_prevu, colors="gray", linewidth=0.5
         )
 
 
@@ -221,23 +220,23 @@ def _ecart_type_residus(
     return math.sqrt(variance)
 
 
-def _band_grid(abscisses_observees: Sequence[float]) -> list[float]:
-    """Grille régulière sur l'intervalle des abscisses observées.
+def _band_grid(kilometres_observes: Sequence[float]) -> list[float]:
+    """Grille régulière sur l'intervalle des kilomètres observés.
 
     But:
-        Générer 101 points uniformes entre min et max des abscisses.
+        Générer 101 points uniformes entre min et max des kilomètres.
     """
 
     # Calcule la borne min; exige séquence non vide; ValueError sinon
-    borne_min_abscisse = min(abscisses_observees)
+    borne_min_km = min(kilometres_observes)
     # Calcule la borne max; même hypothèse; O(n) temps cumulé min+max
-    borne_max_abscisse = max(abscisses_observees)
+    borne_max_km = max(kilometres_observes)
     # Construit la grille dans [min,max]; 101 points; O(101) mémoire
     # NaN/inf dans les bornes se propagent dans le résultat
     # Si min == max: renvoie 101 copies de la même valeur; acceptable
     return [
         # Interpolation linéaire entre bornes avec pas 1/100
-        borne_min_abscisse + (borne_max_abscisse - borne_min_abscisse) * indice / 100
+        borne_min_km + (borne_max_km - borne_min_km) * indice / 100
         # Itère indice 0..100 pour espacement égal
         for indice in range(101)
     ]
@@ -300,8 +299,8 @@ def _band_bounds(
 
 def plot_confidence_band(
     module_matplotlib: Any,
-    abscisses_iterable: Iterable[float],
-    donnees_points: Iterable[tuple[float, float]],
+    kilometres_iterable: Iterable[float],
+    donnees_reelles: Iterable[tuple[float, float]],
     coefficient_intercept: float,
     coefficient_pente: float,
     niveau_confiance: float,
@@ -309,50 +308,59 @@ def plot_confidence_band(
     """Trace la bande de confiance autour de la régression.
 
     But:
-        Visualiser l'incertitude prédictive pour un niveau donné.
+        Visualiser l'incertitude prédictive (prix en fonction du kilométrage).
     """
 
-    # Convertit l'itérable d'abscisses en liste exploitable
-    liste_abscisses = list(abscisses_iterable)
+    # Convertit l'itérable de kilomètres en liste exploitable
+    liste_kilometres = list(kilometres_iterable)
+
     # Vérifie qu'il y a au moins 3 points, sinon variance résiduelle invalide
-    if len(liste_abscisses) <= 2:
+    if len(liste_kilometres) <= 2:
         return
-    # Calcule la moyenne et la somme des carrés centrés
-    moyenne_abscisses, somme_carre_centre = _stats(liste_abscisses)
-    # Vérifie que la variance des abscisses n'est pas nulle
+
+    # Calcule la moyenne et la somme des carrés centrés du kilométrage
+    moyenne_km, somme_carre_centre = _stats(liste_kilometres)
+
+    # Vérifie que la variance du kilométrage n'est pas nulle
     if math.isclose(somme_carre_centre, 0.0):
         return
-    # Estime l'écart-type des résidus selon les coefficients et données
+
+    # Estime l'écart-type des résidus selon les coefficients et données réelles
     ecart_type_residus = _ecart_type_residus(
-        donnees_points,
+        donnees_reelles,
         coefficient_intercept,
         coefficient_pente,
-        len(liste_abscisses),
+        len(liste_kilometres),
     )
-    # Crée une grille régulière d'abscisses pour tracer la bande
-    grille_abscisses = _band_grid(liste_abscisses)
-    # Calcule les prédictions du modèle sur la grille
-    liste_predictions = [
-        estimatePrice(abscisse, coefficient_intercept, coefficient_pente)
-        for abscisse in grille_abscisses
+
+    # Crée une grille régulière de kilomètres pour tracer la bande
+    grille_km = _band_grid(liste_kilometres)
+
+    # Calcule les prix prédits par le modèle sur la grille
+    liste_prix_predits = [
+        estimatePrice(km, coefficient_intercept, coefficient_pente) for km in grille_km
     ]
+
     # Calcule le quantile z correspondant au niveau de confiance choisi
     quantile_normal = NormalDist().inv_cdf(0.5 + niveau_confiance / 2)
+
     # Calcule les erreurs standard ponctuelles
     liste_erreurs_standard = _std_errors(
-        grille_abscisses,
-        liste_abscisses,
+        grille_km,
+        liste_kilometres,
         ecart_type_residus,
-        moyenne_abscisses,
+        moyenne_km,
         somme_carre_centre,
     )
+
     # Calcule les bornes inférieures et supérieures de la bande
     liste_bornes_inferieures, liste_bornes_superieures = _band_bounds(
-        liste_predictions, liste_erreurs_standard, quantile_normal
+        liste_prix_predits, liste_erreurs_standard, quantile_normal
     )
+
     # Dessine la zone ombrée représentant la bande de confiance
     module_matplotlib.fill_between(
-        grille_abscisses,
+        grille_km,
         liste_bornes_inferieures,
         liste_bornes_superieures,
         color="red",
@@ -362,33 +370,35 @@ def plot_confidence_band(
 
 def plot_central_tendency(
     module_matplotlib: Any,
-    liste_ordonnees: Sequence[float],
+    liste_prix: Sequence[float],
     afficher_mediane: bool,
 ) -> None:
-    """Trace la moyenne et éventuellement la médiane des valeurs.
+    """Trace la moyenne et éventuellement la médiane des prix.
 
     But:
-        Montrer rapidement la tendance centrale des données.
+        Montrer rapidement la tendance centrale des prix.
     """
 
-    # Calcule la moyenne arithmétique des valeurs
-    moyenne_ordonnees = sum(liste_ordonnees) / len(liste_ordonnees)
+    # Calcule la moyenne arithmétique des prix
+    moyenne_prix = sum(liste_prix) / len(liste_prix)
+
     # Trace une ligne horizontale représentant la moyenne
     module_matplotlib.axhline(
-        moyenne_ordonnees, color="blue", linestyle="--", label="moyenne(y)"
+        moyenne_prix, color="blue", linestyle="--", label="moyenne(prix)"
     )
+
     # Vérifie si l'option d'affichage de la médiane est activée
     if afficher_mediane:
         # Calcule la médiane, robuste aux valeurs extrêmes
-        mediane_ordonnees = median(liste_ordonnees)
+        mediane_prix = median(liste_prix)
         # Trace une ligne horizontale représentant la médiane
         module_matplotlib.axhline(
-            mediane_ordonnees, color="green", linestyle=":", label="mediane(y)"
+            mediane_prix, color="green", linestyle=":", label="mediane(prix)"
         )
 
 
 def split_outliers(
-    donnees_points: Sequence[tuple[float, float]],
+    donnees_csv: Sequence[tuple[float, float]],
     coefficient_intercept: float,
     coefficient_pente: float,
     seuil_ecart_type: float,
@@ -399,61 +409,66 @@ def split_outliers(
         Identifier les points atypiques selon |résidu| ≤/> k·σ.
     """
 
-    # Calcule les résidus = écart entre valeur réelle et prédiction
+    # Calcule les résidus = écart entre prix réel (CSV) et prix prédit
     liste_residus = [
-        ordonnee - estimatePrice(abscisse, coefficient_intercept, coefficient_pente)
-        for abscisse, ordonnee in donnees_points
+        prix_reel - estimatePrice(km, coefficient_intercept, coefficient_pente)
+        for km, prix_reel in donnees_csv
     ]
+
     # Estime l'écart-type des résidus si au moins 2 points
     ecart_type_residus = stdev(liste_residus) if len(liste_residus) > 1 else 0.0
+
     # Conserve les points dont le résidu est inférieur au seuil k·σ
     liste_inliers = [
-        (abscisse, ordonnee)
-        for (abscisse, ordonnee), residu in zip(donnees_points, liste_residus)
+        (km, prix_reel)
+        for (km, prix_reel), residu in zip(donnees_csv, liste_residus)
         if abs(residu) <= seuil_ecart_type * ecart_type_residus
     ]
+
     # Conserve les points dont le résidu dépasse le seuil k·σ
     liste_outliers = [
-        (abscisse, ordonnee)
-        for (abscisse, ordonnee), residu in zip(donnees_points, liste_residus)
+        (km, prix_reel)
+        for (km, prix_reel), residu in zip(donnees_csv, liste_residus)
         if abs(residu) > seuil_ecart_type * ecart_type_residus
     ]
+
     # Retourne les deux groupes de points
     return liste_inliers, liste_outliers
 
 
 def plot_points(
     module_matplotlib: Any,
-    liste_inliers: Sequence[tuple[float, float]],
-    liste_outliers: Sequence[tuple[float, float]],
+    inliers_km_prix: Sequence[tuple[float, float]],
+    outliers_km_prix: Sequence[tuple[float, float]],
 ) -> None:
     """Trace un nuage de points avec inliers et outliers.
 
     But:
-        Visualiser données et mettre en évidence les outliers.
+        Visualiser les données CSV (km, prix) et mettre en évidence les outliers.
     """
 
     # Vérifie si des inliers existent
-    if liste_inliers:
+    if inliers_km_prix:
         # Dispersion des inliers sans couleur spécifique
         module_matplotlib.scatter(
-            [abscisse for abscisse, _ in liste_inliers],
-            [ordonnee for _, ordonnee in liste_inliers],
+            [km for km, _ in inliers_km_prix],
+            [prix for _, prix in inliers_km_prix],
             label="donnees",
         )
+
     # Vérifie si des outliers existent
-    if liste_outliers:
+    if outliers_km_prix:
         # Dispersion des outliers avec couleur distinctive
         module_matplotlib.scatter(
-            [abscisse for abscisse, _ in liste_outliers],
-            [ordonnee for _, ordonnee in liste_outliers],
+            [km for km, _ in outliers_km_prix],
+            [prix for _, prix in outliers_km_prix],
             color="orange",
             label="outliers",
         )
 
 
 def main(arguments_ligne_commande: list[str] | None = None) -> None:
-    """Visualise le jeu de données et la droite θ0 + θ1·x.
+    """Visualise le jeu de données (km, prix) et la droite θ0 + θ1·km.
 
     But:
         Charger, évaluer et tracer les éléments avec Matplotlib.
@@ -461,19 +476,25 @@ def main(arguments_ligne_commande: list[str] | None = None) -> None:
 
     # Construit l'analyseur d'arguments et lit les options
     arguments = _build_parser().parse_args(arguments_ligne_commande)
-    # Charge et valide les données depuis le fichier CSV
-    donnees_points = read_data(Path(arguments.data))
+
+    # Charge et valide les données depuis le fichier CSV (km, prix)
+    donnees_csv = read_data(Path(arguments.data))
+
     # Charge les coefficients du modèle et ignore champs additionnels
     coefficient_intercept, coefficient_pente, *_ = load_theta(arguments.theta)
+
     # Calcule RMSE et R² pour évaluer le modèle
     racine_mse, coefficient_determination = evaluate(arguments.data, arguments.theta)
-    # Extrait la liste des abscisses des données
-    liste_abscisses = [abscisse for abscisse, _ in donnees_points]
-    # Extrait la liste des ordonnées des données
-    liste_ordonnees = [ordonnee for _, ordonnee in donnees_points]
+
+    # Extrait la liste des kilomètres depuis les données CSV
+    liste_km = [km for km, _ in donnees_csv]
+
+    # Extrait la liste des prix depuis les données CSV
+    liste_prix = [prix for _, prix in donnees_csv]
+
     # Sépare les points inliers et outliers selon le seuil k·σ
-    liste_inliers, liste_outliers = split_outliers(
-        donnees_points,
+    inliers_km_prix, outliers_km_prix = split_outliers(
+        donnees_csv,
         coefficient_intercept,
         coefficient_pente,
         arguments.sigma_k,
@@ -481,52 +502,58 @@ def main(arguments_ligne_commande: list[str] | None = None) -> None:
 
     # Neutralise le typage de plt pour appels dynamiques
     module_matplotlib = cast(Any, plt)
+
     # Trace les inliers et outliers
-    plot_points(module_matplotlib, liste_inliers, liste_outliers)
+    plot_points(module_matplotlib, inliers_km_prix, outliers_km_prix)
+
     # Récupère les axes courants pour tracer la droite
     axes_courants = module_matplotlib.gca()
+
     # Si demandé, trace les segments représentant les résidus
     if arguments.show_residuals:
         plot_residuals(
             module_matplotlib,
-            donnees_points,
+            donnees_csv,
             coefficient_intercept,
             coefficient_pente,
         )
+
     # Si un niveau de confiance est défini, trace la bande correspondante
     if arguments.confidence is not None:
         plot_confidence_band(
             module_matplotlib,
-            liste_abscisses,
-            donnees_points,
+            liste_km,
+            donnees_csv,
             coefficient_intercept,
             coefficient_pente,
             arguments.confidence,
         )
+
     # Trace la droite de régression et éventuellement son équation
     plot_regression_line(
         axes_courants,
-        liste_abscisses,
+        liste_km,
         coefficient_intercept,
         coefficient_pente,
         arguments.show_eq,
     )
-    # Trace la moyenne et éventuellement la médiane des ordonnées
-    plot_central_tendency(module_matplotlib, liste_ordonnees, arguments.show_median)
+
+    # Trace la moyenne et éventuellement la médiane des prix
+    plot_central_tendency(module_matplotlib, liste_prix, arguments.show_median)
 
     # Ajoute un titre synthétique avec les métriques d'évaluation
     module_matplotlib.suptitle(
         f"RMSE: {racine_mse:.2f}, R2: {coefficient_determination:.2f}"
     )
 
-    # Étiquette l'axe des abscisses en kilomètres
+    # Étiquette l'axe des X en kilomètres
     module_matplotlib.xlabel("km")
-    # Étiquette l'axe des ordonnées en prix
+
+    # Étiquette l'axe des Y en prix
     module_matplotlib.ylabel("price")
 
     # Récupère labels pour décider si légende à afficher
     _, liste_labels = axes_courants.get_legend_handles_labels()
-    # Affiche la légende si au moins un label est présent
     if any(liste_labels):
         module_matplotlib.legend()
 

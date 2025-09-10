@@ -100,7 +100,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         "eval": (str(data), str(theta)),
         "suptitle": "RMSE: 0.00, R2: 1.00",
         "vlines": 0,
-        "axhlines": [(1.0, "moyenne(y)")],
+        "axhlines": [(1.0, "moyenne(prix)")],
         "fill_between": 0,
     }
 
@@ -126,7 +126,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         "eval": (str(data), str(theta)),
         "suptitle": "RMSE: 0.00, R2: 1.00",
         "vlines": 0,
-        "axhlines": [(1.0, "moyenne(y)")],
+        "axhlines": [(1.0, "moyenne(prix)")],
         "fill_between": 0,
     }
 
@@ -158,7 +158,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         "eval": (str(data), str(theta)),
         "suptitle": "RMSE: 0.00, R2: 1.00",
         "vlines": 3,
-        "axhlines": [(1.0, "moyenne(y)")],
+        "axhlines": [(1.0, "moyenne(prix)")],
         "fill_between": 0,
     }
 
@@ -190,7 +190,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         "eval": (str(data), str(theta)),
         "suptitle": "RMSE: 0.00, R2: 1.00",
         "vlines": 0,
-        "axhlines": [(1.0, "moyenne(y)"), (1.0, "mediane(y)")],
+        "axhlines": [(1.0, "moyenne(prix)"), (1.0, "mediane(prix)")],
         "fill_between": 0,
     }
 
@@ -222,7 +222,7 @@ def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         "eval": (str(data), str(theta)),
         "suptitle": "RMSE: 0.00, R2: 1.00",
         "vlines": 0,
-        "axhlines": [(1.0, "moyenne(y)")],
+        "axhlines": [(1.0, "moyenne(prix)")],
         "fill_between": 1,
     }
 

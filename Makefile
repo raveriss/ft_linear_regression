@@ -52,7 +52,7 @@ type:
 
 # Exécution des tests unitaires
 test:
-	$(POETRY) pytest -q
+	$(POETRY) pytest -vv
 
 # Analyse de la couverture avec rapport JSON, HTML et console (100% requis)
 cov:

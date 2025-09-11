@@ -87,37 +87,109 @@ def read_data(path: str | Path) -> list[tuple[float, float]]:
     return rows
 
 
+# def gradient_descent(
+#     donnees_km_prix: list[tuple[float, float]],
+#     taux_apprentissage: float,
+#     nb_iterations: int,
+# ) -> tuple[float, float]:
+#     """Ajuste une droite de régression (prix = prix_base + pente * km) par descente de gradient.
+
+#     But:
+#         Estimer prix_base (valeur à 0 km) et pente (variation par km)
+#         pour réduire au minimum l'écart entre estimation et données CSV.
+#     """
+
+#     # Correspondance des notations :
+#     #   prix = pente * km + prix_base
+#     #   équivalent à : y = θ1 * x + θ0
+#     #   où pente = θ1 (coefficient directeur, a)
+#     #       prix_base = θ0 (ordonnée à l'origine, b)
+
+#     # Prix de base à 0 km (équivalent de θ0 ou b dans y = ax + b)
+#     prix_base = 0.0
+#     # Pente de la droite (équivalent de θ1 ou a dans y = ax + b)
+#     pente = 0.0
+#     # Nombre total d’exemples pour la moyenne
+#     nb_exemples = float(len(donnees_km_prix))
+
+#     # Répète le calcul sur un nombre fixé d’itérations
+#     for _ in range(nb_iterations):
+#         # Erreur moyenne globale sur toutes les prédictions → ajuste le prix de base
+#         ajustement_prix_base = (
+#             sum((prix_base + pente * km) - prix for km, prix in donnees_km_prix)
+#             / nb_exemples
+#         )
+
+#         # Erreur moyenne pondérée par les km → ajuste la pente
+#         ajustement_pente = (
+#             sum(((prix_base + pente * km) - prix) * km for km, prix in donnees_km_prix)
+#             / nb_exemples
+#         )
+
+#         # Mise à l’échelle par le taux d’apprentissage
+#         correction_prix_base = taux_apprentissage * ajustement_prix_base
+#         correction_pente = taux_apprentissage * ajustement_pente
+
+#         # Mise à jour simultanée des coefficients
+#         prix_base -= correction_prix_base
+#         pente -= correction_pente
+
+#         # --- Affichage de debug par itération ---
+#         print(f"=== Itération {_} ===")
+#         print(f"prix_base: {prix_base:.6f}, pente: {pente:.6f}")
+#         print(f"ajustement_prix_base: {ajustement_prix_base:.6f}, ajustement_pente: {ajustement_pente:.6f}")
+#         print(f"correction_prix_base: {correction_prix_base:.6f}, correction_pente: {correction_pente:.6f}")
+#         print("")
+
+#     return prix_base, pente
+
+
 def gradient_descent(
-    data: list[tuple[float, float]], alpha: float, iterations: int
+    donnees_km_prix: list[tuple[float, float]],
+    taux_apprentissage: float,
+    nb_iterations: int,
 ) -> tuple[float, float]:
-    """Return coefficients computed via gradient descent.
+    """Ajuste une droite (prix = prix_base + pente * km) sur les données km/prix.
 
     But:
-        Estimer theta0 et theta1 par itérations successives.
+        Trouver prix_base (prix estimé à 0 km) et pente (variation par km)
+        qui rapprochent au mieux les estimations des prix réels.
     """
 
-    # Initialise theta0 à 0
-    theta0 = 0.0
-    # Initialise theta1 à 0
-    theta1 = 0.0
-    # Nombre d'échantillons converti en float pour divisions
-    m = float(len(data))
-    # Boucle d'optimisation sur nombre d'itérations demandé
-    for _ in range(iterations):
-        # Calcule le gradient partiel pour theta0
-        dtheta0 = sum((theta0 + theta1 * x) - y for x, y in data) / m
-        # Calcule le gradient partiel pour theta1
-        dtheta1 = sum(((theta0 + theta1 * x) - y) * x for x, y in data) / m
+    prix_base = 0.0  # Prix estimé à 0 km
+    pente = 0.0  # Variation du prix en fonction des km
+    nb_exemples = float(len(donnees_km_prix))
 
-        # Applique le taux d'apprentissage à dtheta0
-        tmp_theta0 = alpha * dtheta0
-        # Applique le taux d'apprentissage à dtheta1
-        tmp_theta1 = alpha * dtheta1
-        # Met à jour theta0 simultanément
-        theta0 -= tmp_theta0
-        # Met à jour theta1 simultanément
-        theta1 -= tmp_theta1
-    return theta0, theta1
+    # Seulement 3 étapes de calcul
+    for numero_etape in range(nb_iterations):
+        print(f"=== Étape {numero_etape} ===")
+
+        for km, prix_reel in donnees_km_prix:
+            estimation = prix_base + pente * km
+            erreur = estimation - prix_reel
+            print(
+                f"km={km}, prix_reel={prix_reel}, estimation={estimation:.6f}, erreur={erreur:.6f}"
+            )
+
+        ajustement_prix_base = (
+            sum((prix_base + pente * km) - prix for km, prix in donnees_km_prix)
+            / nb_exemples
+        )
+        ajustement_pente = (
+            sum(((prix_base + pente * km) - prix) * km for km, prix in donnees_km_prix)
+            / nb_exemples
+        )
+
+        correction_prix_base = taux_apprentissage * ajustement_prix_base
+        correction_pente = taux_apprentissage * ajustement_pente
+
+        prix_base -= correction_prix_base
+        pente -= correction_pente
+
+        print(f"prix_base: {prix_base:.6f}, pente: {pente:.6f}")
+        print("")
+
+    return prix_base, pente
 
 
 def save_theta(

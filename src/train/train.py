@@ -133,14 +133,6 @@ def gradient_descent(
         # Mise à jour simultanée des coefficients
         prix_base -= correction_prix_base
         pente -= correction_pente
-
-        # --- Affichage de debug par itération ---
-        print(f"=== Itération {_} ===")
-        print(f"prix_base: {prix_base:.6f}, pente: {pente:.6f}")
-        print(f"ajustement_prix_base: {ajustement_prix_base:.6f}, ajustement_pente: {ajustement_pente:.6f}")
-        print(f"correction_prix_base: {correction_prix_base:.6f}, correction_pente: {correction_pente:.6f}")
-        print("")
-
     return prix_base, pente
 
 

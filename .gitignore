@@ -1,5 +1,5 @@
 # Files generated during development
-theta.json
+theta_*.json
 htmlcov/
 .coverage*
 .pytest_cache/

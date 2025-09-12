@@ -92,7 +92,9 @@ def gradient_descent(
     taux_apprentissage: float,
     nb_iterations: int,
 ) -> tuple[float, float]:
-    """Ajuste une droite de régression (prix = prix_base + pente * km) par descente de gradient.
+    """Ajuste une droite de régression par descente de gradient.
+
+    L'équation a la forme ``prix = prix_base + pente * km``.
 
     But:
         Estimer prix_base (valeur à 0 km) et pente (variation par km)
@@ -134,54 +136,6 @@ def gradient_descent(
         prix_base -= correction_prix_base
         pente -= correction_pente
     return prix_base, pente
-
-
-# def gradient_descent(
-#     donnees_km_prix: list[tuple[float, float]],
-#     taux_apprentissage: float,
-#     nb_iterations: int,
-# ) -> tuple[float, float]:
-#     """Ajuste une droite (prix = prix_base + pente * km) sur les données km/prix.
-
-#     But:
-#         Trouver prix_base (prix estimé à 0 km) et pente (variation par km)
-#         qui rapprochent au mieux les estimations des prix réels.
-#     """
-
-#     prix_base = 0.0  # Prix estimé à 0 km
-#     pente = 0.0  # Variation du prix en fonction des km
-#     nb_exemples = float(len(donnees_km_prix))
-
-#     # Seulement 3 étapes de calcul
-#     for numero_etape in range(nb_iterations):
-#         # print(f"=== Étape {numero_etape} ===")
-
-#         for km, prix_reel in donnees_km_prix:
-#             estimation = prix_base + pente * km
-#             erreur = estimation - prix_reel
-#             # print(
-#             #     f"km={km}, prix_reel={prix_reel}, estimation={estimation:.6f}, erreur={erreur:.6f}"
-#             # )
-
-#         ajustement_prix_base = (
-#             sum((prix_base + pente * km) - prix for km, prix in donnees_km_prix)
-#             / nb_exemples
-#         )
-#         ajustement_pente = (
-#             sum(((prix_base + pente * km) - prix) * km for km, prix in donnees_km_prix)
-#             / nb_exemples
-#         )
-
-#         correction_prix_base = taux_apprentissage * ajustement_prix_base
-#         correction_pente = taux_apprentissage * ajustement_pente
-
-#         prix_base -= correction_prix_base
-#         pente -= correction_pente
-
-#         # print(f"prix_base: {prix_base:.6f}, pente: {pente:.6f}")
-#         # print("")
-
-#     return prix_base, pente
 
 
 def save_theta(

@@ -78,8 +78,8 @@ def build_parser() -> argparse.ArgumentParser:  # pragma: no mutate
 
     # Alias FR sans changer le contrat des tests: dest explicite
     parser.add_argument(
-        "--alpha",
         "--taux-apprentissage",
+        "--alpha",
         dest="alpha",
         type=_alpha_type,
         default=0.1,
@@ -87,8 +87,8 @@ def build_parser() -> argparse.ArgumentParser:  # pragma: no mutate
     )  # pragma: no mutate
 
     parser.add_argument(
-        "--iters",
         "--nb-iterations",
+        "--iters",
         dest="iters",
         type=_iters_type,
         default=1000,

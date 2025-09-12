@@ -150,6 +150,15 @@ def test_train_parser_definition() -> None:
         parser.parse_args(["--alpha", "0.1", "--iters", "10"])
 
 
+def test_train_parser_aliases() -> None:
+    parser = build_train_parser()
+    args = parser.parse_args(
+        ["--data", "d", "--taux-apprentissage", "0.3", "--nb-iterations", "7"]
+    )
+    assert args.alpha == pytest.approx(0.3)
+    assert args.iters == 7
+
+
 def test_alpha_type_error_messages(capsys: pytest.CaptureFixture[str]) -> None:
     parser = build_train_parser()
     with pytest.raises(SystemExit):

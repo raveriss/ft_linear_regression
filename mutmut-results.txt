@@ -1,0 +1,8 @@
+    train.__main__.x_build_parser__mutmut_20: survived
+    train.__main__.x_build_parser__mutmut_25: survived
+    train.__main__.x_build_parser__mutmut_26: survived
+    train.__main__.x_build_parser__mutmut_33: survived
+    train.__main__.x_build_parser__mutmut_41: survived
+    train.__main__.x_build_parser__mutmut_46: survived
+    train.__main__.x_build_parser__mutmut_47: survived
+    train.__main__.x_build_parser__mutmut_54: survived

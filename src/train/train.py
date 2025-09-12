@@ -154,14 +154,14 @@ def gradient_descent(
 
 #     # Seulement 3 étapes de calcul
 #     for numero_etape in range(nb_iterations):
-#         print(f"=== Étape {numero_etape} ===")
+#         # print(f"=== Étape {numero_etape} ===")
 
 #         for km, prix_reel in donnees_km_prix:
 #             estimation = prix_base + pente * km
 #             erreur = estimation - prix_reel
-#             print(
-#                 f"km={km}, prix_reel={prix_reel}, estimation={estimation:.6f}, erreur={erreur:.6f}"
-#             )
+#             # print(
+#             #     f"km={km}, prix_reel={prix_reel}, estimation={estimation:.6f}, erreur={erreur:.6f}"
+#             # )
 
 #         ajustement_prix_base = (
 #             sum((prix_base + pente * km) - prix for km, prix in donnees_km_prix)
@@ -178,8 +178,8 @@ def gradient_descent(
 #         prix_base -= correction_prix_base
 #         pente -= correction_pente
 
-#         print(f"prix_base: {prix_base:.6f}, pente: {pente:.6f}")
-#         print("")
+#         # print(f"prix_base: {prix_base:.6f}, pente: {pente:.6f}")
+#         # print("")
 
 #     return prix_base, pente
 

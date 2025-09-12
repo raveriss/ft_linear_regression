@@ -66,38 +66,41 @@ def build_parser() -> argparse.ArgumentParser:  # pragma: no mutate
     But:
         Définir les options, types et valeurs par défaut de la CLI.
     """
-    # Instancie le parseur CLI; cadre d’usage et aide globale.
     parser = argparse.ArgumentParser(
         description="Train the linear regression model",
     )  # pragma: no mutate
-    # Exige le chemin CSV; fail fast si manquant. Contrat: transmis à read_data.
+
     parser.add_argument(
         "--data",
         required=True,
         help="path to training data CSV",
     )  # pragma: no mutate
-    # Valide alpha via _alpha_type; par défaut stable 0.1.
-    # Invariant: 0<alpha≤1 garanti par _alpha_type.
+
+    # Alias FR sans changer le contrat des tests: dest explicite
     parser.add_argument(
         "--alpha",
+        "--taux-apprentissage",
+        dest="alpha",
         type=_alpha_type,
         default=0.1,
         help="learning rate (0 < alpha <= 1)",
     )  # pragma: no mutate
-    # Valide un entier positif; impacte coût O(iters).
+
     parser.add_argument(
         "--iters",
+        "--nb-iterations",
+        dest="iters",
         type=_iters_type,
         default=1000,
         help="number of iterations",
     )  # pragma: no mutate
-    # Chemin de sortie des paramètres; permet override par l’utilisateur.
+
     parser.add_argument(
         "--theta",
         default="theta.json",
         help="path to theta JSON",
     )  # pragma: no mutate
-    # Post: parseur prêt pour parse_args(argv).
+
     return parser  # pragma: no mutate
 
 

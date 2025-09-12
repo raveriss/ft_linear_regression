@@ -102,12 +102,14 @@ def test_train_parser_definition() -> None:
     assert actions["data"].option_strings == ["--data"]
     assert actions["data"].help == "path to training data CSV"
     assert actions["data"].required is True
-    assert actions["alpha"].option_strings == ["--alpha"]
+    # Doit au minimum exposer --alpha, tolère des alias additionnels
+    assert "--alpha" in actions["alpha"].option_strings
     help_text = actions["alpha"].help or ""
     assert help_text.startswith("learning rate")
     assert actions["alpha"].required is False
     assert actions["alpha"].default == pytest.approx(0.1)
-    assert actions["iters"].option_strings == ["--iters"]
+    # Doit au minimum exposer --iters, tolère des alias additionnels
+    assert "--iters" in actions["iters"].option_strings
     assert actions["iters"].help == "number of iterations"
     assert actions["iters"].required is False
     assert actions["iters"].default == 1000

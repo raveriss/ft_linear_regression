@@ -276,7 +276,7 @@ Tests recommandés :
 - Lint : `ruff check`.  
 - CI/CD Ubuntu-only (GitHub Actions).  
 - Hooks `pre-commit` pour vérifier format/lint/tests rapides avant commit.  
-
+---
 ## 📚 Documentation liée
 - [`AGENTS.md`](./AGENTS.md) → Blueprint complet CI/CD + checklist défense-proof.  
 - [`ft_linear_regression_checklist_défense-proof.txt`](./ft_linear_regression_checklist_défense-proof.txt) → Qualité tests & couverture.  
@@ -285,6 +285,20 @@ Tests recommandés :
 - Le bonus est **cloisonné** : il ne doit pas interférer avec le mandatory ni impacter la CI de base.
 
 ---
+
+## 📖 Ressources utilisées
+
+Les contenus suivants ont été essentiels pour comprendre et implémenter la régression linéaire et l’algorithme du gradient :
+
+- 🎥 [Playlist YouTube — Machine Learning from Scratch](https://www.youtube.com/playlist?list=PLO_fdPEVlfKqUF5BPKjGSh7aV9aBshrpY)  
+  Série pédagogique détaillant les fondements du Machine Learning et la régression linéaire.
+
+- 📄 [Wikipédia — Fonction linéaire (analyse)](https://fr.wikipedia.org/wiki/Fonction_lin%C3%A9aire_(analyse))  
+  Définitions et propriétés mathématiques de la fonction linéaire.
+
+- 📄 [Wikipédia — Algorithme du gradient](https://fr.wikipedia.org/wiki/Algorithme_du_gradient)  
+  Explication théorique de la descente de gradient et de ses applications en optimisation.
+
 
 <h2 id="licence">🛡️ Licence</h2>
 MIT © 2025 — raveriss  

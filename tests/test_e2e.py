@@ -7,8 +7,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
-
 
 def test_predict_then_train(tmp_path: Path) -> None:
     """Run predict and train commands sequentially and verify their outputs."""

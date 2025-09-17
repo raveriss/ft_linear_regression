@@ -39,6 +39,26 @@ def test_evaluate_constant_prices(tmp_path: Path) -> None:
     assert r2 == 1.0
 
 
+def test_evaluate_small_variance_not_constant(tmp_path: Path) -> None:
+    data = tmp_path / "data.csv"
+    data.write_text("km,price\n0,0.0\n1,0.5\n")
+    theta = tmp_path / "theta.json"
+    theta.write_text(json.dumps({"theta0": 0.0, "theta1": 0.0}))
+    rmse, r2 = evaluate(data, theta)
+    assert rmse == pytest.approx(0.3535533905932738)
+    assert r2 == pytest.approx(-1.0)
+
+
+def test_evaluate_almost_constant_variance(tmp_path: Path) -> None:
+    data = tmp_path / "data.csv"
+    data.write_text("km,price\n0,1.0\n0,1.0000000000001\n")
+    theta = tmp_path / "theta.json"
+    theta.write_text(json.dumps({"theta0": 1.0, "theta1": 1.0}))
+    rmse, r2 = evaluate(data, theta)
+    assert rmse == pytest.approx(7.071067811865475e-14)
+    assert r2 == 1.0
+
+
 def test_read_theta_missing(tmp_path: Path) -> None:
     theta = tmp_path / "missing.json"
     with pytest.raises(ValueError, match=f"theta file not found: {theta}"):

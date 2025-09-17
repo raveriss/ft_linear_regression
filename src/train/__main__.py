@@ -69,46 +69,52 @@ def build_parser() -> argparse.ArgumentParser:  # pragma: no mutate
 
     # On crée un parseur dédié à l’entraînement pour isoler cette CLI
     # et fournir un message d’aide clair dès la ligne de commande
+    # Message pour guider l’utilisateur directement depuis --help
     parser = argparse.ArgumentParser(
-        description="Train the linear regression model",  # message pour guider l’utilisateur
+        description="Train the linear regression model",
     )  # pragma: no mutate
 
     # On impose à l’utilisateur de fournir un dataset
     # afin de garantir que l’entraînement ne démarre jamais à vide
     parser.add_argument(
         "--data",
-        required=True,  # obligatoire pour éviter un comportement implicite
-        help="path to training data CSV",  # aide pour que l’utilisateur comprenne l’attendu
+        required=True,
+        # Aide pour que l’utilisateur comprenne l’attendu
+        help="path to training data CSV",
     )  # pragma: no mutate
 
     # On propose un alias français (--taux-apprentissage) pour l’accessibilité
-    # tout en fixant dest="alpha" pour préserver un contrat stable avec les tests/scripts
+    # tout en fixant dest="alpha" pour préserver un contrat stable
+    # avec les tests/scripts
     parser.add_argument(
         "--taux-apprentissage",
-        "--alpha",  # alias anglais conservé pour cohérence avec la littérature ML
-        dest="alpha",  # nom interne unique et stable
-        type=_alpha_type,  # validation dédiée pour éviter des valeurs hors borne
-        default=0.1,  # valeur par défaut sûre qui converge sur petits datasets
-        help="learning rate (0 < alpha <= 1)",  # explication pédagogique pour l’utilisateur
+        "--alpha",
+        dest="alpha",
+        type=_alpha_type,
+        default=0.1,
+        # Explication pédagogique pour l’utilisateur
+        help="learning rate (0 < alpha <= 1)",
     )  # pragma: no mutate
 
     # On autorise deux syntaxes (--nb-iterations et --iters)
-    # afin de satisfaire à la fois les francophones et les habitués des conventions anglaises
+    # afin de satisfaire à la fois les francophones et les habitués
+    # des conventions anglaises
     parser.add_argument(
         "--nb-iterations",
-        "--iters",  # alias anglais pour compatibilité avec d’autres outils ML
-        dest="iters",  # nom interne stable et cohérent
-        type=_iters_type,  # validation stricte pour éviter itérations négatives ou nulles
-        default=1000,  # valeur par défaut classique en descente de gradient
-        help="number of iterations",  # message clair pour la documentation CLI
+        "--iters",
+        dest="iters",
+        type=_iters_type,
+        default=1000,
+        help="number of iterations",
     )  # pragma: no mutate
 
     # On expose le chemin du fichier de sauvegarde des coefficients
     # pour donner le choix à l’utilisateur et éviter un fichier imposé
     parser.add_argument(
         "--theta",
-        default="theta.json",  # fichier standard par défaut si l’utilisateur ne précise rien
-        help="path to theta JSON",  # aide pour localiser les coefficients après entraînement
+        default="theta.json",
+        # Aide pour localiser les coefficients après entraînement
+        help="path to theta JSON",
     )  # pragma: no mutate
 
     # On retourne le parseur ici pour centraliser toute la configuration CLI
@@ -157,7 +163,10 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no mutate
     #  - améliorer la stabilité numérique
     #  - accélérer la convergence du gradient
     normalized = [
-        ((km - min_km) / km_range, (price - min_price) / price_range)
+        (
+            (km - min_km) / km_range,
+            (price - min_price) / price_range,
+        )
         for km, price in data
     ]
 

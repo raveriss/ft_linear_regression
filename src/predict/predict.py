@@ -9,6 +9,9 @@ import argparse
 # Permet de sérialiser/désérialiser les paramètres appris (theta).
 import json
 
+# Outils numériques pour comparer des flottants de manière robuste.
+import math
+
 # Uniformise la gestion de chemins pour lire le fichier theta.
 from pathlib import Path
 
@@ -17,8 +20,6 @@ from typing import Any
 
 # Réutilise la fonction de prédiction entraînée pour éviter la duplication.
 from linear_regression import estimatePrice
-
-from typing import cast
 
 
 # Expose un parseur dédié pour centraliser la définition de la CLI.
@@ -130,10 +131,9 @@ def _read_theta(theta_path: Path) -> dict[str, Any]:
             # une seule logique d’erreur centralisée
             raise ValueError
 
-        # On précise explicitement à l’analyse statique que l’objet
-        # est bien un dict[str, Any] : cela évite les alertes de typage
-        # et rend le contrat de retour clair pour les fonctions appelantes
-        typed_raw = cast(dict[str, Any], raw)
+        # On en déduit un mapping clé/valeur et on documente le type
+        # explicitement pour l’analyse statique via une annotation dédiée
+        typed_raw: dict[str, Any] = raw
 
         # On retourne uniquement un objet validé afin que
         # les parseurs de types aval travaillent sur une base fiable
@@ -149,14 +149,10 @@ def _read_theta(theta_path: Path) -> dict[str, Any]:
         raise SystemExit(2)
 
 
-def _parse_float(value: Any, theta_path: Path) -> float:
+def _parse_float(value: Any, theta_path: Path | None) -> float:
     """Normalise une valeur vers float et unifie le traitement d’erreur."""
 
-    # Défense interne : même si l’annotation de type garantit Path,
-    # on garde ce garde-fou pour détecter très tôt un appel incohérent.
-    # Cela permet d’arrêter immédiatement avec une erreur claire
-    # plutôt que de propager un état invalide plus loin.
-    if theta_path is None:  # type: ignore[unreachable]
+    if theta_path is None:
         raise AssertionError
 
     try:
@@ -174,14 +170,8 @@ def _parse_float(value: Any, theta_path: Path) -> float:
         raise SystemExit(2)
 
 
-def _maybe_float(value: Any, theta_path: Path) -> float | None:
+def _maybe_float(value: Any, theta_path: Path | None) -> float | None:
     """Gère la présence d’optionnels tout en validant les non-nuls."""
-
-    # Défense interne : même si le type annonce Path, on garde ce test
-    # pour détecter rapidement un appel incohérent et arrêter tôt,
-    # au lieu de laisser une incohérence se propager plus loin.
-    if theta_path is None:  # type: ignore[unreachable]
-        raise AssertionError
 
     # Si la valeur est absente, on renvoie explicitement None pour distinguer
     # "pas de donnée fournie" d’une donnée invalide.
@@ -276,7 +266,7 @@ def predict_price(km: float, theta_path: str = "theta.json") -> float:
 
     # Test explicite : on sait que load_theta() renvoie exactement 0.0
     # par défaut si le modèle n’a pas été entraîné → pas de risque d’imprécision
-    if theta0 == 0.0 and theta1 == 0.0:  # noqa: S1244
+    if math.isclose(theta0, 0.0) and math.isclose(theta1, 0.0):
         return 0
 
     # On applique la formule linéaire issue de l’entraînement

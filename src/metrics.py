@@ -11,10 +11,12 @@ from __future__ import annotations
 # On utilise JSON car c’est un format standard et interopérable pour stocker theta
 import json
 
-# On importe math pour bénéficier de sqrt et éviter d’implémenter nos propres racines carrées
+# On importe math pour bénéficier de sqrt et éviter
+# d’implémenter nos propres racines carrées
 import math
 
-# On passe par Path pour garantir des opérations fichiers robustes et portables (multi-OS)
+# On passe par Path pour garantir des opérations fichiers robustes
+# et portables (multi-OS)
 from pathlib import Path
 
 # On réutilise la fonction de prédiction du modèle afin d’évaluer
@@ -82,13 +84,14 @@ def evaluate(data_path: str | Path, theta_path: str | Path) -> tuple[float, floa
     m = len(y_true)
 
     # RMSE = erreur quadratique moyenne → mesure robuste des écarts
-    rmse = math.sqrt(sum((p - y) ** 2 for p, y in zip(y_pred, y_true)) / m)
+    squared_errors = [(pred - true) ** 2 for pred, true in zip(y_pred, y_true)]
+    rmse = math.sqrt(sum(squared_errors) / m)
 
     # Moyenne des prix réels pour centrer les calculs de variance
     y_mean = sum(y_true) / m
 
     # Somme des carrés des résidus : quantité d’erreur non expliquée par le modèle
-    ss_res = sum((y - p) ** 2 for p, y in zip(y_pred, y_true))
+    ss_res = sum((true - pred) ** 2 for pred, true in zip(y_pred, y_true))
 
     # Somme totale des carrés : variance totale des données
     ss_tot = sum((y - y_mean) ** 2 for y in y_true)
@@ -97,7 +100,9 @@ def evaluate(data_path: str | Path, theta_path: str | Path) -> tuple[float, floa
     # Cas particulier : si toutes les valeurs sont identiques,
     # la variance est exactement nulle → R² défini comme 1.0
     # `noqa: S1244` justifié car ss_tot est soit 0.0, soit strictement > 0
-    return rmse, 1.0 if ss_tot == 0.0 else 1 - ss_res / ss_tot  # noqa: S1244
+    if math.isclose(ss_tot, 0.0, abs_tol=1e-12):
+        return rmse, 1.0
+    return rmse, 1 - ss_res / ss_tot
 
 
 def main() -> None:

@@ -603,8 +603,9 @@ def plot_points(
     # On ne trace les inliers que s’il y en a pour ne pas polluer le graphe
     # avec des appels vides → évite bruit visuel inutile
     if inliers_km_prix:
-        # On affiche les points "normaux" pour révéler la tendance principale
-        # sans couleur spéciale afin que la droite de régression reste la référence visuelle
+        # On affiche les points "normaux" pour révéler la tendance principale.
+        # On évite une couleur spéciale afin que la droite de régression
+        # reste la référence visuelle dominante.
         module_matplotlib.scatter(
             [km for km, _ in inliers_km_prix],  # axe X = kilométrage
             [prix for _, prix in inliers_km_prix],  # axe Y = prix observé

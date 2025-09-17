@@ -47,9 +47,9 @@ def test_load_theta_nondict_json(
 
 def test_parse_float_asserts_path() -> None:
     with pytest.raises(AssertionError):
-        _parse_float(0.0, None)  # type: ignore[arg-type]
+        _parse_float(0.0, None)
 
 
 def test_parse_optional_float_asserts_path() -> None:
     with pytest.raises(AssertionError):
-        _maybe_float(0.0, None)  # type: ignore[arg-type]
+        _maybe_float(0.0, None)

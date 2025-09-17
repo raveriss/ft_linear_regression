@@ -24,12 +24,24 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no mutate
     # On laisse parse_args gérer les erreurs d’usage via SystemExit(2)
     # plutôt que d’intercepter et de transformer l’exception (meilleure
     # visibilité côté shell/CI et conformité aux conventions Unix).
-    km, theta = parse_args(argv)
+    try:
+        km, theta = parse_args(argv)
 
-    # Défense interne : parse_args garantit un str, mais si un bug
-    # ou un appel incohérent casse ce contrat, on arrête immédiatement.
-    if not isinstance(theta, str):  # pragma: no cover  # type: ignore[unreachable]
-        raise SystemExit(2)
+        # Défense interne : parse_args garantit un str, mais si un bug
+        # ou un appel incohérent casse ce contrat, on arrête immédiatement.
+        if not isinstance(theta, str):  # pragma: no cover  # type: ignore[unreachable]
+            raise SystemExit(2)
+    except SystemExit as exc:
+        # argparse renvoie parfois un message (str) → on le relaie sur stdout
+        # puis on mappe l’erreur sur un code 1 pour signaler l’échec à l’appelant.
+        code = exc.code
+        if isinstance(code, str):
+            print(code)
+            return 1
+
+        # Par défaut, SystemExit(None) correspond à 0 : on force 1 pour indiquer
+        # l’échec. Sinon on relaie fidèlement le code entier.
+        return int(code or 1)
 
     # On calcule la prédiction à partir des coefficients persistés
     price = predict_price(km, theta)

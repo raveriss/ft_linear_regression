@@ -22,6 +22,9 @@ def estimate_price(theta0: float, theta1: float, x: float) -> float:
     return float(theta0) + float(theta1) * float(x)
 
 
-# Alias camelCase conservé uniquement pour compatibilité descendante.
-# À terme, seule la version snake_case devrait être utilisée.
-estimatePrice = estimate_price  # noqa: N815
+def estimatePrice(x: float, theta0: float, theta1: float) -> float:  # noqa: N802,N803,N815
+    """Compatibilité historique avec la signature ``estimatePrice(x, theta0, theta1)``."""
+
+    # On délègue vers l’implémentation canonique en inversant l’ordre des
+    # paramètres pour préserver le comportement attendu des anciennes versions.
+    return estimate_price(theta0=theta0, theta1=theta1, x=x)

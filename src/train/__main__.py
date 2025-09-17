@@ -66,41 +66,53 @@ def build_parser() -> argparse.ArgumentParser:  # pragma: no mutate
     But:
         Définir les options, types et valeurs par défaut de la CLI.
     """
+
+    # On crée un parseur dédié à l’entraînement pour isoler cette CLI
+    # et fournir un message d’aide clair dès la ligne de commande
     parser = argparse.ArgumentParser(
-        description="Train the linear regression model",
+        description="Train the linear regression model",  # message pour guider l’utilisateur
     )  # pragma: no mutate
 
+    # On impose à l’utilisateur de fournir un dataset
+    # afin de garantir que l’entraînement ne démarre jamais à vide
     parser.add_argument(
         "--data",
-        required=True,
-        help="path to training data CSV",
+        required=True,  # obligatoire pour éviter un comportement implicite
+        help="path to training data CSV",  # aide pour que l’utilisateur comprenne l’attendu
     )  # pragma: no mutate
 
-    # Alias FR sans changer le contrat des tests: dest explicite
+    # On propose un alias français (--taux-apprentissage) pour l’accessibilité
+    # tout en fixant dest="alpha" pour préserver un contrat stable avec les tests/scripts
     parser.add_argument(
         "--taux-apprentissage",
-        "--alpha",
-        dest="alpha",
-        type=_alpha_type,
-        default=0.1,
-        help="learning rate (0 < alpha <= 1)",
+        "--alpha",  # alias anglais conservé pour cohérence avec la littérature ML
+        dest="alpha",  # nom interne unique et stable
+        type=_alpha_type,  # validation dédiée pour éviter des valeurs hors borne
+        default=0.1,  # valeur par défaut sûre qui converge sur petits datasets
+        help="learning rate (0 < alpha <= 1)",  # explication pédagogique pour l’utilisateur
     )  # pragma: no mutate
 
+    # On autorise deux syntaxes (--nb-iterations et --iters)
+    # afin de satisfaire à la fois les francophones et les habitués des conventions anglaises
     parser.add_argument(
         "--nb-iterations",
-        "--iters",
-        dest="iters",
-        type=_iters_type,
-        default=1000,
-        help="number of iterations",
+        "--iters",  # alias anglais pour compatibilité avec d’autres outils ML
+        dest="iters",  # nom interne stable et cohérent
+        type=_iters_type,  # validation stricte pour éviter itérations négatives ou nulles
+        default=1000,  # valeur par défaut classique en descente de gradient
+        help="number of iterations",  # message clair pour la documentation CLI
     )  # pragma: no mutate
 
+    # On expose le chemin du fichier de sauvegarde des coefficients
+    # pour donner le choix à l’utilisateur et éviter un fichier imposé
     parser.add_argument(
         "--theta",
-        default="theta.json",
-        help="path to theta JSON",
+        default="theta.json",  # fichier standard par défaut si l’utilisateur ne précise rien
+        help="path to theta JSON",  # aide pour localiser les coefficients après entraînement
     )  # pragma: no mutate
 
+    # On retourne le parseur ici pour centraliser toute la configuration CLI
+    # et garantir que tous les appels utilisent la même logique d’entrée
     return parser  # pragma: no mutate
 
 
@@ -110,44 +122,56 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no mutate
     But:
         Parser, normaliser, optimiser, dénormaliser, puis sauvegarder.
     """
-    # Parse la CLI; si argv=None, lit sys.argv implicitement.
+
+    # On passe par argparse pour garantir une CLI standardisée et claire,
+    # et ainsi éviter les entrées mal formées ou ambiguës
     args = build_parser().parse_args(argv)
-    # Encadre la lecture des données pour gérer les erreurs utilisateur.
+
     try:
-        # Charge et valide le dataset depuis le chemin fourni.
+        # On centralise la lecture/validation des données ici afin
+        # de protéger l’utilisateur contre les CSV corrompus ou incomplets
         data = read_data(args.data)
-    # Capture une erreur de format/valeur et passe en sortie contrôlée.
     except ValueError as exc:
-        # Signale l'erreur à l'utilisateur sans traceback verbeux.
+        # On affiche une erreur simple et lisible à l’utilisateur
+        # plutôt qu’un traceback Python illisible
         print(f"ERROR: {exc}")
-        # Code de retour ≠0 pour indiquer l'échec d'entrée.
+        # Retour ≠ 0 pour signaler un échec de parsing ou de dataset
         return 2
 
-    # Sépare X et y; pré: chaque élément est un (km, price) numérique.
+    # On décompose explicitement km/prix pour traiter chaque dimension
+    # séparément (notamment pour la normalisation qui suit)
     kms, prices = zip(*data)
-    # Calcule les bornes des kms pour normaliser.
+
+    # On calcule les bornes min/max pour ramener les valeurs
+    # dans une plage stable, et éviter que le gradient soit dominé
+    # par des échelles trop grandes
     min_km, max_km = min(kms), max(kms)
-    # Calcule les bornes des prix pour normaliser.
     min_price, max_price = min(prices), max(prices)
 
-    # Évite div/0 si tous les kms sont identiques.
+    # On impose une borne non nulle pour éviter une division par zéro
+    # dans les cas dégénérés (ex: tous les km ou prix identiques)
     km_range = max_km - min_km or 1.0  # pragma: no mutate
-    # Évite div/0 si tous les prix sont identiques.
     price_range = max_price - min_price or 1.0  # pragma: no mutate
-    # Mise à l'échelle [0,1] pour stabilité et vitesse du gradient.
+
+    # On normalise les données dans [0,1] pour :
+    #  - améliorer la stabilité numérique
+    #  - accélérer la convergence du gradient
     normalized = [
         ((km - min_km) / km_range, (price - min_price) / price_range)
         for km, price in data
     ]
 
-    # Optimise sur données normalisées; pré: alpha∈(0,1], iters>0
+    # On entraîne le modèle sur données normalisées pour éviter
+    # les biais liés aux unités ou aux ordres de grandeur
     theta0_n, theta1_n = gradient_descent(normalized, args.alpha, args.iters)
-    # Restaure la pente à l'échelle d'origine.# Restaure la pente à l'échelle d'origine.
+
+    # On ramène les paramètres du modèle à l’échelle réelle
+    # pour que les prédictions soient exprimées en km/prix d’origine
     theta1 = theta1_n * price_range / km_range
-    # Recalcule l'ordonnée à l'origine dans l'échelle réelle.
     theta0 = theta0_n * price_range + min_price - theta1 * min_km  # pragma: no mutate
 
-    # Persiste paramètres et bornes pour les futures prédictions.
+    # On sauvegarde les paramètres et bornes pour que `predict.py`
+    # puisse reproduire exactement le même contexte de calcul
     save_theta(
         theta0,
         theta1,
@@ -157,7 +181,8 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no mutate
         min_price,
         max_price,
     )
-    # Succès nominal.
+
+    # Retour 0 → succès nominal, conforme aux conventions Unix
     return 0
 
 

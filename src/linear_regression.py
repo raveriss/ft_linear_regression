@@ -4,27 +4,24 @@ But:
     Fournir des fonctions de prédiction simples et compatibles.
 """
 
-# Active les annotations différées (compatibilité Python <3.11)
+# On active les annotations différées pour améliorer la compatibilité
+# avec d’anciennes versions de Python (avant 3.11) et réduire les dépendances
 from __future__ import annotations
 
 
-def estimatePrice(x: float, theta0: float, theta1: float) -> float:
+def estimate_price(theta0: float, theta1: float, x: float) -> float:
     """Return the predicted value ``theta0 + theta1 * x``.
 
     But:
         Calculer la valeur estimée à partir des coefficients du modèle.
     """
 
-    # Force chaque terme en float pour éviter erreurs de type
+    # On force chaque terme en float pour garantir que le calcul reste
+    # numérique même si des entiers ou d’autres types “float-like”
+    # sont passés par erreur → robustesse et cohérence du résultat
     return float(theta0) + float(theta1) * float(x)
 
 
-def estimate_price(theta0: float, theta1: float, x: float) -> float:
-    """Backwards-compatible snake_case wrapper around :func:`estimatePrice`.
-
-    But:
-        Maintenir une API rétrocompatible en snake_case.
-    """
-
-    # Délègue le calcul à estimatePrice (version camelCase)
-    return estimatePrice(x, theta0, theta1)
+# Alias camelCase conservé uniquement pour compatibilité descendante.
+# À terme, seule la version snake_case devrait être utilisée.
+estimatePrice = estimate_price  # noqa: N815

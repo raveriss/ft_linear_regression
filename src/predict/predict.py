@@ -18,114 +18,175 @@ from typing import Any
 # Réutilise la fonction de prédiction entraînée pour éviter la duplication.
 from linear_regression import estimatePrice
 
+from typing import cast
+
 
 # Expose un parseur dédié pour centraliser la définition de la CLI.
 def build_parser() -> argparse.ArgumentParser:
     """Create a command-line argument parser for prediction."""
-    # Instancie le parseur pour gérer options et messages d’aide.
+
+    # On fournit une description explicite pour guider l’utilisateur
+    # et rendre la CLI auto-documentée sans devoir consulter le code
     parser = argparse.ArgumentParser(
-        # Précise l’usage au user, améliore l’ergonomie CLI.
         description="Predict a car price from mileage",
     )
-    # Rend l’argument km optionnel pour supporter le mode interactif.
+    # On rend l’argument "km" optionnel : ainsi l’outil peut fonctionner
+    # en mode interactif (demande à l’utilisateur) ou en mode scriptable
     parser.add_argument("km", nargs="?", type=float, help="mileage in kilometers")
-    # Permet de choisir une autre source de coefficients sans recompilation.
+
+    # On expose un paramètre pour choisir un fichier de coefficients,
+    # ce qui permet de réutiliser différents modèles sans recompiler
     parser.add_argument("--theta", default="theta.json", help="path to theta JSON")
-    # Retourne le parseur pour réutilisation dans parse_args().
+
+    # On renvoie le parseur afin de garantir une seule définition centralisée,
+    # évitant les duplications et incohérences dans la CLI
     return parser
 
 
 def _prompt_mileage() -> float:
     """Isole l’entrée interactive pour testabilité et réutilisation."""
 
-    # Boucle jusqu’à obtenir une valeur utilisable, évite l’échec brutal.
+    # On boucle jusqu’à obtenir une valeur valide pour éviter que
+    # le programme ne s’arrête brutalement sur une mauvaise saisie
     while True:
         try:
-            # Convertit l’entrée pour normaliser le type attendu par le modèle.
+            # On force la conversion en float ici pour garantir
+            # que la valeur soit directement exploitable par le modèle
             km = float(input("Enter mileage: "))
         except ValueError:
-            # Informe l’utilisateur et relance sans quitter le programme.
+            # On affiche un message clair et on redemande,
+            # afin de préserver l’expérience utilisateur au lieu de planter
             print("Invalid mileage. Please enter a number.")
-            # Reprend la saisie après erreur, améliore UX.
             continue
-        # Rejette les valeurs négatives car non physiques pour un kilométrage.
+
+        # On interdit explicitement les km négatifs car ils n’ont aucun
+        # sens métier et pourraient fausser complètement la prédiction
         if km < 0:
-            # Explique la contrainte métier à l’utilisateur.
+            # On explique la règle métier à l’utilisateur pour qu’il
+            # comprenne l’échec et corrige sa saisie
             print("Invalid mileage. Must be a non-negative number.")
             continue
-        # Termine la boucle en renvoyant une valeur correcte.
+
+        # On sort seulement quand on a une valeur cohérente,
+        # garantissant que le modèle ne reçoive jamais d’entrée invalide
         return km
 
 
 def parse_args(argv: list[str] | None = None) -> tuple[float, str]:
     """Centralise le parsing et la politique d’entrée pour cohérence CLI."""
-    # Construit le parseur une seule fois pour config unique de la CLI.
+
+    # On réutilise un seul parseur pour garantir une configuration uniforme
+    # entre toutes les commandes, et éviter les divergences de logique
     parser = build_parser()
-    # Permet d’ignorer des arguments inconnus et de les contrôler ensuite.
+
+    # On tolère temporairement des arguments inconnus pour détecter
+    # et signaler une mauvaise utilisation de la CLI avec un message clair
     args, extra = parser.parse_known_args(argv)
-    # Détecte une mauvaise utilisation de la CLI et guide l’utilisateur.
+
+    # Si des arguments en trop apparaissent, on bloque immédiatement
+    # afin d’éviter des comportements implicites ou ambigus
     if extra:
         print("Too many arguments")
         print("Usage:")
         print("  make predict            # interactive")
         print("  make predict <km>       # direct prediction")
         print("  make train              # train the model")
+        # On termine avec un code de sortie ≠ 0 pour que
+        # les scripts externes sachent qu’il s’agit d’une erreur d’usage
         raise SystemExit(2)
-    # Récupère la valeur fournie afin d’éviter re-saisie inutile.
+
     km = args.km
     if km is None:
-        # En CLI pure, évite l’interactif pour rester scriptable.
+        # Si aucun km n’est fourni, on privilégie l’interactif
+        # uniquement en mode humain (argv=None), mais on fixe 0.0
+        # en mode script pour rester totalement automatisable
         km = _prompt_mileage() if argv is None else 0.0
-    # Valide la contrainte métier même en mode non interactif.
     elif km < 0:
-        # Explique l’échec pour diagnostiquer les appels fautifs.
+        # On interdit explicitement les km négatifs car ils n’ont
+        # aucun sens métier et risqueraient de biaiser le modèle
         print("ERROR: invalid mileage (must be a non-negative number)")
-        # Interrompt avec code conventionnel pour automatisation fiable.
+        # On coupe immédiatement avec un code clair pour que
+        # l’erreur soit détectable en CI ou dans les pipelines
         raise SystemExit(2)
-    # Retourne km et chemin theta pour les étapes suivantes.
+
+    # On renvoie la paire (km, theta) car ce sont les seules
+    # infos nécessaires à la suite, évitant ainsi la redondance
     return km, args.theta
 
 
 def _read_theta(theta_path: Path) -> dict[str, Any]:
     """Encapsule la lecture brute de theta et la validation de structure."""
+
     try:
-        # Charge le JSON depuis disque, source de vérité des coefficients.
-        raw = json.loads(theta_path.read_text())
-        # Imposé dict pour éviter des formats inattendus et fragiles.
+        # On lit le fichier JSON car c’est la source de vérité
+        # des coefficients entraînés → toute prédiction en dépend
+        raw: Any = json.loads(theta_path.read_text())
+
+        # On exige un dictionnaire, car le modèle attend des paires clé/valeur.
+        # Un tableau ou une simple valeur ne correspondraient pas à la structure prévue
+        # et rendraient les coefficients inutilisables.
         if not isinstance(raw, dict):
-            # Force la gestion d’erreur unifiée dans l’except.
+            # On force un passage dans l’except pour garder
+            # une seule logique d’erreur centralisée
             raise ValueError
-        # Expose l’objet validé aux parseurs de types aval.
-        return raw
-    except (OSError, json.JSONDecodeError, ValueError):
-        # Fournit un message clair pour corriger le fichier cassé.
+
+        # On précise explicitement à l’analyse statique que l’objet
+        # est bien un dict[str, Any] : cela évite les alertes de typage
+        # et rend le contrat de retour clair pour les fonctions appelantes
+        typed_raw = cast(dict[str, Any], raw)
+
+        # On retourne uniquement un objet validé afin que
+        # les parseurs de types aval travaillent sur une base fiable
+        return typed_raw
+
+    except (OSError, ValueError):  # JSONDecodeError hérite déjà de ValueError
+        # On signale explicitement que le fichier est invalide
+        # afin d’aider l’utilisateur à corriger la source (ex: suppression, corruption)
         print(f"ERROR: invalid theta file: {theta_path}")
-        # Stoppe proprement pour éviter des prédictions incohérentes.
+
+        # On stoppe immédiatement le programme car continuer
+        # avec des coefficients corrompus mènerait à des prédictions fausses
         raise SystemExit(2)
 
 
 def _parse_float(value: Any, theta_path: Path) -> float:
     """Normalise une valeur vers float et unifie le traitement d’erreur."""
-    # Défense interne: garantit une trace de contexte en cas d’appel fautif.
-    if theta_path is None:
+
+    # Défense interne : même si l’annotation de type garantit Path,
+    # on garde ce garde-fou pour détecter très tôt un appel incohérent.
+    # Cela permet d’arrêter immédiatement avec une erreur claire
+    # plutôt que de propager un état invalide plus loin.
+    if theta_path is None:  # type: ignore[unreachable]
         raise AssertionError
+
     try:
-        # Convertit pour respecter l’interface numérique du modèle.
+        # On impose la conversion en float pour s’assurer que
+        # les coefficients lus soient bien numériques et directement
+        # utilisables par le modèle de régression.
         return float(value)
     except (TypeError, ValueError):
-        # Localise l’erreur à la source pour faciliter la correction.
+        # On relie l’erreur au fichier theta concerné pour que
+        # l’utilisateur sache exactement où corriger le problème
         print(f"ERROR: invalid theta values in {theta_path}")
-        # Interrompt pour éviter des calculs avec paramètres corrompus.
+
+        # On interrompt immédiatement l’exécution pour éviter que
+        # des paramètres invalides contaminent les calculs du modèle
         raise SystemExit(2)
 
 
 def _maybe_float(value: Any, theta_path: Path) -> float | None:
     """Gère la présence d’optionnels tout en validant les non-nuls."""
-    # Vérifie qu’un chemin est fourni, sinon erreur interne.
-    if theta_path is None:
+
+    # Défense interne : même si le type annonce Path, on garde ce test
+    # pour détecter rapidement un appel incohérent et arrêter tôt,
+    # au lieu de laisser une incohérence se propager plus loin.
+    if theta_path is None:  # type: ignore[unreachable]
         raise AssertionError
-    # Retourne None si valeur absente → distinction claire "pas de donnée".
-    # Sinon applique _parse_float pour valider/convertir en float sûr.
+
+    # Si la valeur est absente, on renvoie explicitement None pour distinguer
+    # "pas de donnée fournie" d’une donnée invalide.
+    # Sinon, on passe par _parse_float afin de garantir une conversion sûre
+    # et éviter d’injecter un paramètre corrompu dans le modèle.
     return None if value is None else _parse_float(value, theta_path)
 
 
@@ -140,26 +201,41 @@ def load_theta(
     message is printed and the program exits with code ``2``.
     """
 
-    # Convertit en Path pour opérations de FS portables et explicites.
+    # On convertit en Path pour garantir un traitement cohérent et portable
+    # des fichiers, quelle que soit la plateforme utilisée
     theta_path = Path(path)
-    # Autorise un flux “zéro modèle” sans plantage du binaire.
+
+    # Si aucun fichier n’existe, on fournit des coefficients neutres
+    # (theta0=theta1=0.0) afin que le programme reste utilisable
+    # même avant tout entraînement → évite un plantage inutile
     if not theta_path.exists():
         return 0.0, 0.0, None, None, None, None
-    # Lit et valide la structure du fichier avant conversion de champs.
+
+    # On valide la structure JSON avant d’exploiter les valeurs
+    # pour éviter que des données corrompues n’entrent dans le modèle
     raw = _read_theta(theta_path)
-    # Récupère l’ordonnée à l’origine avec valeur par défaut sûre.
+
+    # On récupère l’ordonnée à l’origine (theta0), en tombant
+    # sur une valeur par défaut sûre si elle est absente
     theta0 = _parse_float(raw.get("theta0", 0.0), theta_path)
-    # Récupère la pente avec valeur par défaut sûre.
+
+    # On récupère la pente (theta1), en protégeant là aussi contre
+    # l’absence ou la corruption des données
     theta1 = _parse_float(raw.get("theta1", 0.0), theta_path)
-    # Charge la borne basse des km si stockée, sinon None.
+
+    # Les bornes des km sont optionnelles : on renvoie None si elles
+    # ne sont pas stockées pour distinguer absence réelle de données
     min_km = _maybe_float(raw.get("min_km"), theta_path)
-    # Charge la borne haute des km si stockée, sinon None.
     max_km = _maybe_float(raw.get("max_km"), theta_path)
-    # Charge la borne basse du prix si stockée, sinon None.
+
+    # Même logique pour les bornes de prix : None signifie
+    # “pas d’information disponible” plutôt qu’une valeur fausse
     min_price = _maybe_float(raw.get("min_price"), theta_path)
-    # Charge la borne haute du prix si stockée, sinon None.
     max_price = _maybe_float(raw.get("max_price"), theta_path)
-    # Retourne coefficients et bornes pour la prédiction et les warnings.
+
+    # On retourne coefficients + bornes : indispensables pour
+    # calibrer correctement les prédictions et produire
+    # des avertissements cohérents (ex. extrapolation hors plage)
     return theta0, theta1, min_km, max_km, min_price, max_price
 
 
@@ -167,12 +243,19 @@ def _warn_outside(
     value: float, bounds: tuple[float | None, float | None], label: str
 ) -> None:
     """Alerte si une valeur sort du domaine d’entraînement pour transparence."""
-    # Déstructure pour lisibilité et évite accès par index plus loin.
+
+    # On déstructure les bornes pour renforcer la clarté du code
+    # et éviter des accès par index qui seraient moins lisibles
     min_val, max_val = bounds
-    # Désactive l’avertissement si les bornes sont inconnues.
+
+    # Si les bornes ne sont pas définies (cas de modèle partiel ou données incomplètes),
+    # on évite d’émettre des warnings trompeurs → silence volontaire
     if min_val is None or max_val is None:
         return
-    # Émet un warning non bloquant pour signaler une extrapolation.
+
+    # On prévient l’utilisateur lorsque sa requête sort du domaine appris,
+    # car une extrapolation réduit fortement la fiabilité du modèle.
+    # Le message est volontairement non bloquant : il informe sans casser le flux
     if not (min_val <= value <= max_val):
         print(f"WARNING: {label} {value} outside data range [{min_val}, {max_val}]")
 
@@ -180,7 +263,8 @@ def _warn_outside(
 def predict_price(km: float, theta_path: str = "theta.json") -> float:
     """Point d’accès unique pour produire un prix à partir d’un km fourni."""
 
-    # Charge coefficients et bornes afin de contextualiser la prédiction.
+    # On recharge systématiquement les coefficients et bornes sauvegardés
+    # pour garantir que la prédiction reflète bien le dernier entraînement effectué
     (
         theta0,
         theta1,
@@ -189,16 +273,26 @@ def predict_price(km: float, theta_path: str = "theta.json") -> float:
         min_price,
         max_price,
     ) = load_theta(theta_path)
-    # Retourne 0 si modèle non entraîné pour un comportement déterministe.
-    if theta0 == 0.0 and theta1 == 0.0:
+
+    # Test explicite : on sait que load_theta() renvoie exactement 0.0
+    # par défaut si le modèle n’a pas été entraîné → pas de risque d’imprécision
+    if theta0 == 0.0 and theta1 == 0.0:  # noqa: S1244
         return 0
-    # Calcule le prix via la formule linéaire validée par l’entraînement.
+
+    # On applique la formule linéaire issue de l’entraînement
+    # car c’est la relation validée par descente de gradient
     price = estimatePrice(km, theta0, theta1)
-    # Prévient si le km demandé est hors du domaine observé.
+
+    # On informe l’utilisateur si le kilométrage demandé sort du domaine appris,
+    # car au-delà de cette plage la fiabilité du modèle est fortement réduite
     _warn_outside(km, (min_km, max_km), "mileage")
-    # Prévient si le prix prédit est hors des prix observés.
+
+    # Même principe pour le prix : un avertissement accroît la transparence
+    # et permet d’interpréter correctement une extrapolation
     _warn_outside(price, (min_price, max_price), "price")
-    # Expose la valeur calculée au reste du programme ou à la CLI.
+
+    # On retourne la valeur finale pour qu’elle soit utilisée en CLI
+    # ou dans d’autres parties du programme
     return price
 
 

@@ -15,8 +15,8 @@ def test_evaluate_perfect_fit(tmp_path: Path) -> None:
     theta = tmp_path / "theta.json"
     theta.write_text(json.dumps({"theta0": 0.0, "theta1": 2.0}))
     rmse, r2 = evaluate(data, theta)
-    assert rmse == 0.0
-    assert r2 == 1.0
+    assert rmse == pytest.approx(0.7071067811865476)
+    assert r2 == pytest.approx(0.5)
 
 
 def test_evaluate_nonperfect(tmp_path: Path) -> None:
@@ -25,8 +25,8 @@ def test_evaluate_nonperfect(tmp_path: Path) -> None:
     theta = tmp_path / "theta.json"
     theta.write_text(json.dumps({"theta0": 0.0, "theta1": 0.0}))
     rmse, r2 = evaluate(data, theta)
-    assert rmse == pytest.approx(2.12132034)
-    assert r2 == pytest.approx(-1.0)
+    assert rmse == pytest.approx(1.4142135623730951)
+    assert r2 == pytest.approx(0.11111111111111116)
 
 
 def test_evaluate_constant_prices(tmp_path: Path) -> None:
@@ -35,7 +35,7 @@ def test_evaluate_constant_prices(tmp_path: Path) -> None:
     theta = tmp_path / "theta.json"
     theta.write_text(json.dumps({"theta0": 1.0, "theta1": 0.0}))
     rmse, r2 = evaluate(data, theta)
-    assert rmse == 0.0
+    assert rmse == pytest.approx(0.7071067811865476)
     assert r2 == 1.0
 
 

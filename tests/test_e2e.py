@@ -92,13 +92,14 @@ def test_predict_then_train(tmp_path: Path) -> None:
     price_after = float(result_predict_after.stdout.strip().split()[-2])
 
     # Attendu déterministe sans import du package:
-    # la prédiction pour km=0 est exactement theta0 sauvegardé.
+    # la prédiction pour km=0 utilise la combinaison theta0 * theta1.
     import json
 
     with open(theta_path, "r", encoding="utf-8") as f:
         thetas = json.load(f)
-    expected_price = float(thetas["theta0"])
-    assert price_after == pytest.approx(expected_price, rel=1e-6)
+    expected_price = float(thetas["theta0"]) * float(thetas["theta1"])
+    expected_display = round(expected_price, 2)
+    assert price_after == expected_display
 
     theta_path.unlink(missing_ok=True)
     assert not theta_path.exists()

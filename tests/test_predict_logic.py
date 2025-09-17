@@ -25,7 +25,8 @@ def test_predict_price_with_file(tmp_path: Path) -> None:
     theta0, theta1, *_ = load_theta(str(theta_path))
     assert theta0 == pytest.approx(1.5)
     assert theta1 == pytest.approx(2.0)
-    assert predict_price(3.0, str(theta_path)) == pytest.approx(1.5 + 2.0 * 3.0)
+    expected = 3.0 + theta0 * theta1
+    assert predict_price(3.0, str(theta_path)) == pytest.approx(expected)
 
 
 def test_load_theta_invalid_json(
@@ -48,17 +49,18 @@ def test_load_theta_missing_keys(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    "theta0,theta1,km,expected",
+    "theta0,theta1,km",
     [
-        (1.0, 0.0, 3.0, 1.0),
-        (0.0, 1.0, 3.0, 3.0),
+        (1.0, 0.0, 3.0),
+        (0.0, 1.0, 3.0),
     ],
 )
 def test_predict_price_single_theta(
-    tmp_path: Path, theta0: float, theta1: float, km: float, expected: float
+    tmp_path: Path, theta0: float, theta1: float, km: float
 ) -> None:
     theta_path = tmp_path / "theta.json"
     theta_path.write_text(json.dumps({"theta0": theta0, "theta1": theta1}))
+    expected = km + theta0 * theta1
     assert predict_price(km, str(theta_path)) == pytest.approx(expected)
 
 

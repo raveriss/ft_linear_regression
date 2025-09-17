@@ -21,10 +21,8 @@ def test_line_points() -> None:
     theta0, theta1 = 0.5, 2.0
     line_x, line_y = viz._line_points(xs, theta0, theta1)
     assert line_x == [1.0, 3.0]
-    assert line_y == [
-        estimatePrice(1.0, theta0, theta1),
-        estimatePrice(3.0, theta0, theta1),
-    ]
+    expected_y = [estimatePrice(km, theta0, theta1) for km in [1.0, 3.0]]
+    assert line_y == expected_y
 
 
 def test_main_plots(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

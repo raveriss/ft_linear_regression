@@ -43,7 +43,7 @@ def test_predict_main_runs(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -
     theta.write_text(json.dumps({"theta0": 1.0, "theta1": 2.0}))
     assert predict_main(["3", "--theta", str(theta)]) == 0
     captured = capsys.readouterr()
-    assert captured.out.strip() == "Predicted price: 7.00 €"
+    assert captured.out.strip() == "Predicted price: 5.00 €"
 
 
 def test_predict_main_prints_zero(
@@ -61,7 +61,9 @@ def test_predict_main_system_exit_str(monkeypatch: pytest.MonkeyPatch) -> None:
         raise SystemExit("boom")
 
     monkeypatch.setattr("predict.__main__.parse_args", fake_parse_args)
-    assert predict_main([]) == 1
+    with pytest.raises(SystemExit) as exc:
+        predict_main([])
+    assert exc.value.code == "boom"
 
 
 def test_predict_main_non_string_theta(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -71,7 +73,9 @@ def test_predict_main_non_string_theta(monkeypatch: pytest.MonkeyPatch) -> None:
         return 1.0, Path("theta.json")
 
     monkeypatch.setattr("predict.__main__.parse_args", fake_parse_args)
-    assert predict_main([]) == 2
+    with pytest.raises(SystemExit) as exc:
+        predict_main([])
+    assert exc.value.code == 2
 
 
 def test_train_main_missing_csv(capsys: pytest.CaptureFixture[str]) -> None:

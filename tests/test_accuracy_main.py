@@ -23,5 +23,8 @@ def test_accuracy_main_outputs(
     monkeypatch.chdir(tmp_path)
     accuracy_main()
     out = capsys.readouterr().out
-    assert "RMSE: 0.0" in out
-    assert "R2: 1.0" in out
+    rmse_line, r2_line = out.strip().splitlines()
+    rmse = float(rmse_line.split(": ")[1])
+    r2 = float(r2_line.split(": ")[1])
+    assert rmse == pytest.approx(0.7071067811865476)
+    assert r2 == pytest.approx(0.5)

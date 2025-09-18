@@ -16,7 +16,7 @@ import math
 from pathlib import Path
 
 # Permet d'annoter des types génériques et clarifier les contrats.
-from typing import Any, cast
+from typing import Any
 
 # Réutilise la fonction de prédiction entraînée pour éviter la duplication.
 from linear_regression import estimate_price
@@ -127,35 +127,45 @@ def _read_theta(theta_path: Path) -> dict[str, Any]:
         afin que le reste du pipeline (parsing typé) travaille sur une base sûre.
     """
     try:
-        # On désérialise le JSON depuis disque : source unique de vérité des coefficients.
-        # → tout le reste (prédiction/évaluation) dépend de l’intégrité de ce fichier.
+        # On désérialise le JSON depuis disque : source unique de vérité
+        # des coefficients.
+        # → tout le reste (prédiction/évaluation) dépend de l’intégrité
+        # de ce fichier.
         raw: Any = json.loads(theta_path.read_text())
 
-        # On exige un dict pour éviter des formats inattendus (liste, str, etc.)
-        # → ces formats ne correspondent pas au contrat “clé/valeur” attendu par le modèle.
+        # On exige un dict pour éviter des formats inattendus
+        # (liste, str, etc.).
+        # → ces formats ne correspondent pas au contrat “clé/valeur”
+        # attendu par le modèle.
         if not isinstance(raw, dict):
             # On déclenche un ValueError pour unifier la gestion d’erreur plus bas.
             raise ValueError
 
         # On informe le type-checker que le contenu est bien un dict[str, Any]
-        # → évite les “dict[Unknown, Unknown]” et rend les accès aux champs sûrs/typés.
-        typed_raw = cast(dict[str, Any], raw)
+        # → évite les “dict[Unknown, Unknown]” et rend les accès aux champs
+        # sûrs/typés.
+        if not all(isinstance(key, str) for key in raw):
+            raise ValueError
 
-        # On ne retourne que l’objet validé pour éviter de propager une structure fragile.
+        # On ne retourne que l’objet validé pour éviter de propager une
+        # structure fragile.
+        typed_raw: dict[str, Any] = {key: raw[key] for key in raw}
         return typed_raw
 
     except (OSError, ValueError):
-        # On explique clairement la cause probable (fichier manquant/corrompu/mal formé)
+        # On explique clairement la cause probable (fichier
+        # manquant/corrompu/mal formé).
         # → l’utilisateur sait quoi corriger (chemin, contenu JSON).
-        print(f"ERROR: invalid theta file: {theta_path}")
-        # On stoppe net : continuer avec des coefficients invalides produirait des prédictions fausses.
+        print("ERROR: invalid theta file:", theta_path)
+        # On stoppe net : continuer avec des coefficients invalides
+        # produirait des prédictions fausses.
         raise SystemExit(2)
 
 
 def _parse_float(value: Any, theta_path: Path) -> float:
     """Normalise une valeur vers float et unifie le traitement d’erreur."""
     # Défense interne: garantit une trace de contexte en cas d’appel fautif.
-    if theta_path is None:  # type: ignore[unreachable]
+    if not isinstance(theta_path, Path):
         raise AssertionError
     try:
         # On impose la conversion en float pour s'assurer que
@@ -164,8 +174,8 @@ def _parse_float(value: Any, theta_path: Path) -> float:
         return float(value)
     except (TypeError, ValueError):
         # On relie l'erreur au fichier theta concerné pour que
-        # l'utilisateur sache exactement où corriger le problème
-        print(f"ERROR: invalid theta values in {theta_path}")
+        # l'utilisateur sache exactement où corriger le problème.
+        print("ERROR: invalid theta values in", theta_path)
 
         # On interrompt immédiatement l'exécution pour éviter que
         # des paramètres invalides contaminent les calculs du modèle
@@ -176,7 +186,7 @@ def _maybe_float(value: Any, theta_path: Path) -> float | None:
     """Gère la présence d’optionnels tout en validant les non-nuls."""
     # Défense interne → protège contre un appel incohérent
     # même si l’annotation interdit None (utile pour mutation testing)
-    if theta_path is None:  # type: ignore[unreachable]
+    if not isinstance(theta_path, Path):
         raise AssertionError
     # Retourne None si valeur absente → distinction claire "pas de donnée".
     # Sinon applique _parse_float pour valider/convertir en float sûr.

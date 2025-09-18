@@ -204,7 +204,7 @@ PY
 
 ## 2) 📜 Exigences 42 — conformité stricte
 - [ ] **Deux programmes distincts** : `train.py`, `predict.py`.
-- [ ] Hypothèse **exacte** : `estimatePrice(x) = θ0 + θ1 * x`.
+- [ ] Hypothèse **exacte** : `estimate_price(x) = θ0 + θ1 * x`.
 - [ ] **Initialisation** : `θ0 = 0`, `θ1 = 0`.
 - [ ] **Mise à jour simultanée** : calculer `tmpθ0`, `tmpθ1` à partir des `θ` **courants**, puis assigner `θ ← θ − tmpθ` en **fin** d’itération.
 - [ ] **Avant entraînement** : prédire **0** pour tout `km`.
@@ -224,7 +224,7 @@ PY
 **Objectifs** : 100 % couverture (branches + diff), **contrôle par fichier**, tests rapides.
 
 ### 3.1 Unitaires
-- `estimatePrice`, gradients, MAJ **simultanée** (test dédié qui échoue si l’ordre est séquentiel)
+- `estimate_price`, gradients, MAJ **simultanée** (test dédié qui échoue si l’ordre est séquentiel)
 - I/O : CSV manquant, colonnes inattendues, valeurs non numériques (`"12 300"`, `"6,3"`, `NaN`)
 - JSON `theta` : absent/corrompu/droits → message clair + **exit ≠ 0**
 - Tolérances float (`rtol/atol`), **jamais** `==` sur floats
@@ -257,7 +257,7 @@ PY
 ## 4) ⚙️ Spécifications d’implémentation
 
 ### 4.1 Formules
-- `estimatePrice(x) = θ0 + θ1 * x`
+- `estimate_price(x) = θ0 + θ1 * x`
 - Gradients (m = nb échantillons)
   - `dθ0 = (1/m) * Σ( (θ0 + θ1*x_i) - y_i )`
   - `dθ1 = (1/m) * Σ( ((θ0 + θ1*x_i) - y_i) * x_i )`

@@ -38,7 +38,7 @@ Implémenter **un premier algorithme de Machine Learning** : une **régression l
 
 👉 Prédire le **prix d’une voiture** en fonction de son kilométrage via :  
 ```math
-estimatePrice(x) = θ₀ + θ₁ * x
+estimate_price(x) = θ₀ + θ₁ * x
 ```
 
 

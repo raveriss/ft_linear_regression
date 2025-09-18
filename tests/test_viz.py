@@ -13,7 +13,7 @@ if not (ROOT / "src/viz.py").exists():
 sys.path.append(str(ROOT / "src"))
 
 import viz  # noqa: E402
-from linear_regression import estimatePrice  # noqa: E402
+from linear_regression import estimate_price  # noqa: E402
 
 
 def test_line_points() -> None:
@@ -22,8 +22,8 @@ def test_line_points() -> None:
     line_x, line_y = viz._line_points(xs, theta0, theta1)
     assert line_x == [1.0, 3.0]
     assert line_y == [
-        estimatePrice(1.0, theta0, theta1),
-        estimatePrice(3.0, theta0, theta1),
+        estimate_price(1.0, theta0, theta1),
+        estimate_price(3.0, theta0, theta1),
     ]
 
 

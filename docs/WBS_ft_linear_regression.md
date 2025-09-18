@@ -22,8 +22,8 @@
 ## 1) Implémentation obligatoire (mandatory)
 
 ### 1.1 Hypothèse de prédiction
-- **Red** : écrire un test unitaire échouant pour `estimatePrice(x)` attendu.
-- **Green** : implémenter `estimatePrice(x) = θ0 + θ1 * x`.
+- **Red** : écrire un test unitaire échouant pour `estimate_price(x)` attendu.
+- **Green** : implémenter `estimate_price(x) = θ0 + θ1 * x`.
 - **Refactor** : ajouter docstring, typing, tests `pytest.approx`.
 
 ### 1.2 Programme `predict.py`
@@ -48,7 +48,7 @@
 ## 2) Tests (défense-proof)
 
 ### 2.1 Unitaires
-- [ ] `estimatePrice` avec plusieurs km
+- [ ] `estimate_price` avec plusieurs km
 - [ ] Gradient descent (valeurs connues → θ attendus ~ OLS)
 - [ ] CSV parser (bon/mauvais format)
 - [ ] JSON θ (absent/corrompu)

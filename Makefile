@@ -105,8 +105,11 @@ tv-bench-%:
 
 # Affiche la commande pour activer le venv
 activate:
-	@echo "Pour activer l'environnement :"
-	@echo "  source $(PWD)/$(VENV_BIN)"
+	@echo "Chemin de l'environnement Poetry :"
+	@poetry env info -p
+	@echo
+	@echo "Pour activer manuellement cet environnement :"
+	@echo "  source $$(poetry env info -p)/bin/activate"
 
 # Affiche la commande pour désactiver le venv
 deactivate:

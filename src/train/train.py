@@ -4,19 +4,24 @@ But:
     Fournir des fonctions pour charger, valider et sauver les données.
 """
 
-# Active les annotations différées (compatibilité Python <3.11)
+# Active les annotations différées pour éviter les problèmes d’ordre d’import
+# et améliorer la compatibilité avec Python <3.11
 from __future__ import annotations
 
-# Fournit les primitives pour lire/écrire des fichiers CSV
+# On importe csv pour lire/écrire des fichiers tabulaires de façon fiable
+# → évite les parsings manuels fragiles et garantit portabilité inter-OS
 import csv
 
-# Fournit la sérialisation et désérialisation en JSON
+# On importe json pour sérialiser/désérialiser les coefficients entraînés
+# → permet de sauvegarder/charger un modèle dans un format universel et lisible
 import json
 
-# Fournit les fonctions mathématiques (NaN, etc.)
+# On importe math pour gérer les cas numériques particuliers (ex: NaN, inf)
+# → évite d’introduire des valeurs invalides dans les calculs du modèle
 import math
 
-# Fournit un objet chemin multiplateforme pour fichiers
+# On importe Path pour manipuler les fichiers de manière uniforme et robuste
+# → évite les différences Windows/Linux et fournit une API riche (.open, .exists, etc.)
 from pathlib import Path
 
 
@@ -26,34 +31,43 @@ def _float_field(value: str, line_number: int) -> float:
     try:
         result = float(value)
     except ValueError:
-        # Rejette les valeurs non numériques avec indication de ligne
+        # On refuse immédiatement les chaînes non numériques
+        # pour éviter que du texte corrompu n'entre dans les calculs
         raise ValueError(f"invalid row {line_number}: non-numeric value") from None
+
+    # On interdit explicitement NaN car cela se propage silencieusement
+    # et rendrait toutes les moyennes/régressions instables
     if math.isnan(result):
         # Rejette explicitement les valeurs NaN pour éviter des calculs instables
         raise ValueError(f"invalid row {line_number}: NaN value")
     return result
 
 
-def _parse_row(row: dict[str, str | None], line_number: int) -> tuple[float, float]:
+def _valider_ligne(row: dict[str, str | None], line_number: int) -> tuple[float, float]:
     """Convert a CSV row to a ``(km, price)`` pair."""
 
-    # Extrait le champ "km" de la ligne CSV
+    # On récupère les champs nommés pour détecter explicitement
+    # une absence de colonne plutôt qu'une simple erreur d'index
     km_str = row.get("km")
-    # Extrait le champ "price" de la ligne CSV
     price_str = row.get("price")
 
-    # Vérifie qu'aucune des deux valeurs n'est manquante
+    # On refuse toute ligne incomplète afin d'éviter
+    # que des valeurs None ne contaminent la suite du calcul
     if km_str is None or price_str is None:
         raise ValueError(f"invalid row {line_number}: missing value")
 
-    # Convertit km en float et vérifie validité
+    # On force la conversion en float ici pour détecter immédiatement
+    # les données non numériques (ex: "abc") au lieu de propager du texte brut
     km = _float_field(km_str, line_number)
-    # Convertit price en float et vérifie validité
     price = _float_field(price_str, line_number)
-    # Interdit les kilomètres négatifs
+
+    # Les km négatifs n'ont pas de sens dans un contexte automobile,
+    # donc on bloque cette incohérence à la source
     if km < 0:
         raise ValueError(f"invalid row {line_number}: negative km")
-    # Interdit les prix négatifs
+
+    # Un prix négatif n'est pas réaliste économiquement,
+    # donc on lève une erreur plutôt que de laisser passer une valeur absurde
     if price < 0:
         raise ValueError(f"invalid row {line_number}: negative price")
     return km, price
@@ -66,25 +80,36 @@ def read_data(path: str | Path) -> list[tuple[float, float]]:
         Charger un CSV validé et convertir en liste de tuples floats.
     """
 
-    # Normalise le chemin fourni en objet Path
+    # On convertit en Path pour garantir un accès cohérent et portable aux fichiers
+    # → évite les différences de séparateurs entre Windows (\) et Linux (/)
+    # → donne accès à une API uniforme (open(), .exists(), .stem(), etc.)
+    #   au lieu de manipuler des chaînes fragiles
     csv_path = Path(path)
     try:
-        # Ouvre le fichier CSV en lecture texte UTF-8
+        # On impose UTF-8 + newline="" pour garantir une lecture portable,
+        # éviter les soucis d'accents et gérer correctement les fins de lignes
         with csv_path.open(encoding="utf-8", newline="") as f:  # pragma: no mutate
-            # Utilise DictReader pour map colonnes -> valeurs
-            reader = csv.DictReader(f)
-            # Vérifie que les colonnes sont exactement ["km","price"]
-            if reader.fieldnames != ["km", "price"]:
+            # DictReader est utilisé pour accéder aux colonnes par leur nom
+            # au lieu d'index numériques → code plus robuste et lisible
+            lecteur_csv = csv.DictReader(f)
+            # Vérification stricte : on refuse tout CSV dont l'en-tête diffère
+            # pour prévenir des erreurs silencieuses ou colonnes manquantes
+            if lecteur_csv.fieldnames != ["km", "price"]:
                 raise ValueError("invalid CSV format (expected columns: km,price)")
             # Parse chaque ligne et valide à partir de la ligne 2
-            rows = [_parse_row(row, line) for line, row in enumerate(reader, start=2)]
+            donnees_km_prix = [
+                _valider_ligne(contenu_ligne, numero_ligne)
+                for numero_ligne, contenu_ligne in enumerate(lecteur_csv, start=2)
+            ]
     except OSError as exc:  # pragma: no cover - simple error propagation
-        # Remonte une erreur claire si le fichier est absent/inaccessible
+        # On lève une ValueError claire (et non OSError brut)
+        # pour que l'appelant comprenne immédiatement que c'est lié au fichier
         raise ValueError(f"data file not found: {csv_path}") from exc
-    # Rejette les fichiers CSV vides (aucune donnée)
-    if not rows:
+    # On interdit les CSV vides afin d'éviter que le modèle
+    # ne s'exécute sur une absence totale de données
+    if not donnees_km_prix:
         raise ValueError("no data rows found")
-    return rows
+    return donnees_km_prix
 
 
 def gradient_descent(
@@ -107,34 +132,47 @@ def gradient_descent(
     #   où pente = θ1 (coefficient directeur, a)
     #       prix_base = θ0 (ordonnée à l'origine, b)
 
-    # Prix de base à 0 km (équivalent de θ0 ou b dans y = ax + b)
+    # On initialise à zéro pour donner un point de départ neutre
+    # et laisser l’algorithme d’apprentissage corriger progressivement
     prix_base = 0.0
-    # Pente de la droite (équivalent de θ1 ou a dans y = ax + b)
     pente = 0.0
-    # Nombre total d’exemples pour la moyenne
+
+    # On divise toujours par le nombre d’exemples pour obtenir une moyenne,
+    # afin que l’ajustement ne dépende pas de la taille du dataset
     nb_exemples = float(len(donnees_km_prix))
 
-    # Répète le calcul sur un nombre fixé d’itérations
+    # On répète l’ajustement plusieurs fois pour converger vers la solution
+    # car une seule correction ne suffit jamais à minimiser l’erreur
     for _ in range(nb_iterations):
-        # Erreur moyenne globale sur toutes les prédictions → ajuste le prix de base
+        # L’ajustement du prix de base se fait en fonction de l’erreur moyenne :
+        # si en moyenne nos prédictions sont trop hautes ou trop basses,
+        # on corrige intercept pour recentrer la droite
         ajustement_prix_base = (
             sum((prix_base + pente * km) - prix for km, prix in donnees_km_prix)
             / nb_exemples
         )
 
-        # Erreur moyenne pondérée par les km → ajuste la pente
+        # L’ajustement de la pente prend en compte les kilomètres :
+        # les erreurs sur des grands km doivent peser plus fort,
+        # car elles influencent davantage la forme de la droite
         ajustement_pente = (
             sum(((prix_base + pente * km) - prix) * km for km, prix in donnees_km_prix)
             / nb_exemples
         )
 
-        # Mise à l’échelle par le taux d’apprentissage
+        # On multiplie par le taux d’apprentissage pour contrôler la vitesse
+        # de convergence et éviter de “sauter” par-dessus la solution optimale
         correction_prix_base = taux_apprentissage * ajustement_prix_base
         correction_pente = taux_apprentissage * ajustement_pente
 
-        # Mise à jour simultanée des coefficients
+        # On met à jour les coefficients en même temps pour garantir
+        # une descente cohérente : si on corrigeait l’un après l’autre,
+        # la mise à jour du second utiliserait déjà un premier biaisé
         prix_base -= correction_prix_base
         pente -= correction_pente
+
+    # On retourne les coefficients ajustés : ce sont les paramètres
+    # qui minimisent l’écart entre modèle et données observées
     return prix_base, pente
 
 
@@ -153,25 +191,38 @@ def save_theta(
         Sauvegarder les paramètres et bornes éventuelles dans un fichier JSON.
     """
 
-    # Normalise le chemin cible en objet Path
+    # On force l’utilisation d’un Path pour fiabiliser les opérations disque
+    # et garder une API uniforme quel que soit l’OS
     theta_path = Path(path)
-    # Prépare le dictionnaire avec les coefficients
+
+    # On stocke systématiquement les coefficients du modèle (theta0, theta1),
+    # car ils sont indispensables pour toute prédiction future
     data: dict[str, float] = {"theta0": float(theta0), "theta1": float(theta1)}
-    # Prépare un dictionnaire pour stocker les bornes optionnelles
+
+    # On prépare un conteneur séparé pour les bornes, afin de ne les inclure
+    # que si elles existent → évite d’écrire des champs inutiles ou ambigus
     bounds: dict[str, float] = {}
-    # Itère sur chaque borne potentielle à sauvegarder
+
+    # On parcourt les bornes possibles pour n’ajouter que celles
+    # qui apportent une information réelle sur le dataset utilisé
     for key, value in [
         ("min_km", min_km),
         ("max_km", max_km),
         ("min_price", min_price),
         ("max_price", max_price),
     ]:
-        # N'ajoute que si la borne est définie
+        # Si une borne est absente, on ne l’écrit pas :
+        # cela différencie clairement “pas de donnée disponible”
+        # d’une valeur numérique explicite
         if value is not None:
             bounds[key] = float(value)
-    # Fusionne bornes dans les données principales
+
+    # On fusionne les bornes avec les coefficients pour obtenir
+    # une seule source de vérité, simple à charger par predict/train
     data.update(bounds)
-    # Écrit le dictionnaire complet en JSON dans le fichier
+
+    # On écrit tout en JSON pour garantir portabilité et lisibilité :
+    # ce format est standard, facile à parser et indépendant du langage
     theta_path.write_text(json.dumps(data))
 
 

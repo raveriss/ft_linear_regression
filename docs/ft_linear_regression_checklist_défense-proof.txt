@@ -27,7 +27,7 @@
 # 2) Spécifique au sujet (conformité 42)
 
 * [ ] **Deux programmes distincts** (`train.py`, `predict.py`).
-* [ ] Hypothèse exacte : `estimatePrice(x) = θ₀ + θ₁ * x`.
+* [ ] Hypothèse exacte : `estimate_price(x) = θ₀ + θ₁ * x`.
 * [ ] **Initialisation** : `θ₀ = 0`, `θ₁ = 0`.
 * [ ] **Mise à jour simultanée** via `tmpθ₀`, `tmpθ₁`.
 * [ ] **Pas de lib magique** (`numpy.polyfit`, `sklearn.LinearRegression`).

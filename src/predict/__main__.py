@@ -19,10 +19,16 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no mutate
         # Effet: parse_args peut faire sys.exit en cas d'usage invalide.
         # Post: km>=0 float. theta est un chemin str vers le fichier.
         km, theta = parse_args(argv)
-        if not isinstance(theta, str):  # pragma: no cover
+
+        # Défense interne (utile pour mutation testing) :
+        # si un refacto casse le contrat et que theta n’est pas un str,
+        # on arrête immédiatement. Pylance pense ce chemin inatteignable.
+        if not isinstance(theta, str):  # pragma: no cover  # type: ignore[unreachable]
             raise SystemExit(2)  # pragma: no cover
         price = predict_price(km, theta)
-    except SystemExit as exc:  # pragma: no cover - propagate exit codes
+    except (
+        SystemExit
+    ) as exc:  # pragma: no cover - propagate exit codes  # NOSONAR - on choisit de retourner le code plutôt que de relancer
         return exc.code if isinstance(exc.code, int) else 1  # pragma: no cover
     print("0" if price == 0 else f"Predicted price: {price:.2f} €")
     return 0

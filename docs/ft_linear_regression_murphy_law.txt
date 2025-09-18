@@ -7,7 +7,7 @@ Parfait. J’ai lu les deux sujets fournis (énoncé et grille d’évaluation) 
 * Ne pas **initialiser θ₀ = 0, θ₁ = 0** avant tout entraînement.&#x20;
 * Ne pas **sauvegarder** θ₀ et θ₁ après l’entraînement pour réutilisation par le programme de prédiction.&#x20;
 * Ne pas mettre à jour **simultanément** θ₀ et θ₁ (ou réutiliser θ mis à jour au lieu des temporaires `tmpθ₀`, `tmpθ₁`). &#x20;
-* Ne pas respecter **l’hypothèse** exacte `estimatePrice(x) = θ₀ + θ₁ * x`.&#x20;
+* Ne pas respecter **l’hypothèse** exacte `estimate_price(x) = θ₀ + θ₁ * x`.&#x20;
 * Crash, sortie non-contrôlée pendant la soutenance → **note 0**.&#x20;
 * Échec à **lire le CSV** fourni, ou format non conforme.&#x20;
 * Bonus évalués alors que le **mandatory** n’est pas parfait.&#x20;
@@ -46,7 +46,7 @@ Parfait. J’ai lu les deux sujets fournis (énoncé et grille d’évaluation) 
 * Non-vectorisation minimale → lenteurs (mais sur 24 lignes, surtout stylistique).
 * **Mise à jour non simultanée** (déjà cité) → résultat faux malgré code “qui tourne”.&#x20;
 * **Mauvaise formule** des gradients (ou oublier `1/m`) → θ invalides.&#x20;
-* Oublier que `estimatePrice` utilisée dans le gradient doit prendre **les θ temporaires** pour le calcul de `tmpθ`.&#x20;
+* Oublier que `estimate_price` utilisée dans le gradient doit prendre **les θ temporaires** pour le calcul de `tmpθ`.&#x20;
 * **Overflow/underflow** float (rare ici, mais possible si α énorme).
 * **Seed** non fixée si bruit ajouté en bonus → résultats variables.
 

@@ -305,7 +305,7 @@ Une analyse pédagogique pas à pas montre **pourquoi** la bande est
 étroite au centre et large aux extrêmes.
 
 <p align="center">
-  <img src="./docs/assets/plots/confiance/fig06_bande_95.png" alt="Bande de confiance 95%" width="890">
+  <img src="./docs/assets/plots/confiance/fig06_bande_95.png" alt="Bande de confiance 95%" width="764">
   <br><em>Bande de confiance autour de la droite de régression (extrait).</em>
 </p>
 

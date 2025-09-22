@@ -127,6 +127,7 @@ def gradient_descent(
     """
 
     # Correspondance des notations :
+    #      y =     a * x +  b
     #   prix = pente * km + prix_base
     #   équivalent à : y = θ1 * x + θ0
     #   où pente = θ1 (coefficient directeur, a)

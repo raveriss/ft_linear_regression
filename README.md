@@ -149,7 +149,7 @@ Ajoutez `--show-residuals` pour tracer des lignes verticales représentant les r
 Utilisez `--sigma-k` (défaut `2`) pour colorer en orange les points dont
 `|résidu| > k·σ`; ils sont ajoutés à la légende sous le nom « outliers ».
 <p align="center">
-  <img src="docs/price-vs-km-regression.png" alt="Régression linéaire (price vs km)" width="760">
+  <img src="docs/examples/price-vs-km-regression.png" alt="Régression linéaire (price vs km)" width="760">
   <br><em>Nuage de points et droite θ₀ + θ₁·x (après entraînement).</em>
 </p>
 
@@ -306,7 +306,8 @@ Une analyse pédagogique pas à pas montre **pourquoi** la bande est
 
 <p align="center">
   <img src="./docs/assets/plots/confiance/fig06_bande_95.png" alt="Bande de confiance 95%" width="764">
-  <br><em>Bande de confiance autour de la droite de régression (extrait).</em>
+  <br>
+  <em>Bande de confiance autour de la droite de régression (extrait).</em>
 </p>
 
 👉 Voir [docs/confidence_band.md](./docs/confidence_band.md)

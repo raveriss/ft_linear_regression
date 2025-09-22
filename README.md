@@ -155,6 +155,33 @@ Utilisez `--sigma-k` (défaut `2`) pour colorer en orange les points dont
 
 ---
 
+## 🎨 Visuel clé (bonus)
+<p align="center">
+  <a href="./docs/assets/plots/regression/etape6_theta0_vs_iter.png">
+    <img src="./docs/assets/plots/regression/etape6_theta0_vs_iter.png" alt="Descente de gradient — droites successives" width="760">
+  </a>
+  <br><em>La pente se met en place itération par itération (cliquer pour la galerie).</em>
+</p>
+
+➡️ Voir la galerie complète : [docs/regression_lineaire.md](./docs/regression_lineaire.md)
+
+---
+
+## 📊 Bonus : Bande de confiance 95 %
+
+Une analyse pédagogique pas à pas montre **pourquoi** la bande est
+étroite au centre et large aux extrêmes.
+
+<p align="center">
+  <img src="./docs/assets/plots/confiance/fig05_SE.png" alt="Bande de confiance 95%" width="764">
+  <br>
+  <em>Bande de confiance autour de la droite de régression (extrait).</em>
+</p>
+
+👉 Voir [docs/confidence_band.md](./docs/confidence_band.md)
+
+---
+
 ## 📦 Utilisation
 - **Mode interactif** : `predict.py` demande un kilométrage si non fourni.
     ### Exemple concret
@@ -284,33 +311,6 @@ Tests recommandés :
 - [`ft_linear_regression_murphy_law.txt`](./ft_linear_regression_murphy_law.txt) → Risques & contre-mesures.  
 - Énoncé officiel : [ft_linear_regression.en.subject.pdf](./ft_linear_regression.en.subject.pdf).  
 - Le bonus est **cloisonné** : il ne doit pas interférer avec le mandatory ni impacter la CI de base.
-
----
-
-## 🎨 Visuel clé (bonus)
-<p align="center">
-  <a href="./docs/assets/plots/regression/etape3_droites_successives.png">
-    <img src="./docs/assets/plots/regression/etape3_droites_successives.png" alt="Descente de gradient — droites successives" width="760">
-  </a>
-  <br><em>La pente se met en place itération par itération (cliquer pour la galerie).</em>
-</p>
-
-➡️ Voir la galerie complète : [docs/regression_lineaire.md](./docs/regression_lineaire.md)
-
----
-
-## 📊 Bonus : Bande de confiance 95 %
-
-Une analyse pédagogique pas à pas montre **pourquoi** la bande est
-étroite au centre et large aux extrêmes.
-
-<p align="center">
-  <img src="./docs/assets/plots/confiance/fig06_bande_95.png" alt="Bande de confiance 95%" width="764">
-  <br>
-  <em>Bande de confiance autour de la droite de régression (extrait).</em>
-</p>
-
-👉 Voir [docs/confidence_band.md](./docs/confidence_band.md)
 
 ---
 

@@ -80,7 +80,7 @@ predict-nocheck:
 
 # Visualisation des données + droite (theta0 + theta1 * x)
 viz:
-	$(POETRY) python -m src.viz --data $(DATA) --theta $(THETA) --show-residuals --confidence
+	$(POETRY) python -m src.viz --data $(DATA) --theta $(THETA) --show-residuals --confidence --show-eq --show-median
 
 # Tous les CSV de benchmarks : train + viz pour chacun
 tv-bench-all:

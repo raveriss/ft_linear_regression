@@ -288,7 +288,7 @@ Tests recommandés :
 
 ## 🎨 Visuel clé (bonus)
 <p align="center">
-  <a href="./docs/assets/GALLERIE.md">
+  <a href="./docs/assets/plots/etape3_droites_successives.png">
     <img src="./docs/assets/plots/etape3_droites_successives.png" alt="Descente de gradient — droites successives" width="760">
   </a>
   <br><em>La pente se met en place itération par itération (cliquer pour la galerie).</em>

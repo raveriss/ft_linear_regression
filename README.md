@@ -207,8 +207,11 @@ Predicted price: 7991.88 €
 ## 🧠 Architecture
 ```
 .
+├── AGENTS.md
 ├── author
+├── codecov.yml
 ├── CONTRIBUTING.md
+├── coverage.json
 ├── data
 │   ├── benchmarks
 │   │   ├── data_anscombe_I.csv
@@ -267,19 +270,35 @@ Predicted price: 7991.88 €
 │   └── regression_lineaire.md
 ├── LICENSE
 ├── Makefile
+├── poetry.lock
+├── poetry.toml
+├── pyproject.toml
 ├── README.md
-└── src
-    ├── linear_regression.py
-    ├── metrics.py
-    ├── predict
-    │   ├── __init__.py
-    │   ├── __main__.py
-    │   └── predict.py
-    ├── train
-    │   ├── __init__.py
-    │   ├── __main__.py
-    │   └── train.py
-    └── viz.py
+├── src
+│   ├── linear_regression.py
+│   ├── metrics.py
+│   ├── predict
+│   │   ├── __init__.py
+│   │   ├── __main__.py
+│   │   └── predict.py
+│   ├── train
+│   │   ├── __init__.py
+│   │   ├── __main__.py
+│   │   └── train.py
+│   └── viz.py
+└── tests
+    ├── test_accuracy_main.py
+    ├── test_cli.py
+    ├── test_data_parsing.py
+    ├── test_e2e.py
+    ├── test_estimate_price.py
+    ├── test_gradient.py
+    ├── test_json.py
+    ├── test_main_modules.py
+    ├── test_metrics.py
+    ├── test_parser.py
+    ├── test_predict_logic.py
+    └── test_viz.py
 ```
 
 *(Bonus : `viz.py` affiche données + droite de régression)*

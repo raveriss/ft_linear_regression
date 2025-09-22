@@ -209,22 +209,77 @@ Predicted price: 7991.88 €
 .
 ├── author
 ├── CONTRIBUTING.md
-├── data.csv
+├── data
+│   ├── benchmarks
+│   │   ├── data_anscombe_I.csv
+│   │   ├── data_anscombe_II.csv
+│   │   ├── data_anscombe_III.csv
+│   │   ├── data_anscombe_IV.csv
+│   │   ├── data_away.csv
+│   │   ├── data_bullseye.csv
+│   │   ├── data_circle.csv
+│   │   ├── data_collinear.csv
+│   │   ├── data.csv
+│   │   ├── data_dino.csv
+│   │   ├── data_dots.csv
+│   │   ├── data_duplicate.csv
+│   │   ├── data_flat.csv
+│   │   ├── data_high_lines.csv
+│   │   ├── data_h_lines.csv
+│   │   ├── data_inverse.csv
+│   │   ├── data_noise.csv
+│   │   ├── data_nonlinear.csv
+│   │   ├── data_outlier.csv
+│   │   ├── data_slant_down.csv
+│   │   ├── data_slant_up.csv
+│   │   ├── data_small.csv
+│   │   ├── data_sparse.csv
+│   │   ├── data_star.csv
+│   │   ├── data_step.csv
+│   │   ├── data_v_lines.csv
+│   │   ├── data_wide_lines.csv
+│   │   └── data_x_shape.csv
+│   └── samples
+│       └── data.csv
+├── docs
+│   ├── assets
+│   │   └── plots
+│   │       ├── confiance
+│   │       │   ├── fig01_donnees.png
+│   │       │   ├── fig02_droite_ols.png
+│   │       │   ├── fig03_residus_sigma.png
+│   │       │   ├── fig04_effet_levier.png
+│   │       │   ├── fig05_SE.png
+│   │       │   ├── fig06_bande_95.png
+│   │       │   └── fig07_tableau.png
+│   │       ├── examples
+│   │       │   └── price-vs-km-regression.png
+│   │       └── regression
+│   │           ├── etape1_donnees_brutes.png
+│   │           ├── etape2_droite_initiale.png
+│   │           ├── etape3_droites_successives.png
+│   │           ├── etape4_erreurs_initiales.png
+│   │           ├── etape5_erreurs_finales.png
+│   │           ├── etape6_theta0_vs_iter.png
+│   │           ├── etape7_theta1_vs_iter.png
+│   │           └── etape8_cout_vs_iter.png
+│   ├── confidence_band.md
+│   └── regression_lineaire.md
 ├── LICENSE
 ├── Makefile
 ├── README.md
 └── src
-    ├── linear_regression.py
-    ├── metrics.py
-    ├── predict
-    │   ├── __init__.py
-    │   ├── __main__.py
-    │   └── predict.py
-    ├── train
-    │   ├── __init__.py
-    │   ├── __main__.py
-    │   └── train.py
-    └── viz.py
+    ├── linear_regression.py
+    ├── metrics.py
+    ├── predict
+    │   ├── __init__.py
+    │   ├── __main__.py
+    │   └── predict.py
+    ├── train
+    │   ├── __init__.py
+    │   ├── __main__.py
+    │   └── train.py
+    └── viz.py
 ```
 
 *(Bonus : `viz.py` affiche données + droite de régression)*

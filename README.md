@@ -149,7 +149,7 @@ Ajoutez `--show-residuals` pour tracer des lignes verticales représentant les r
 Utilisez `--sigma-k` (défaut `2`) pour colorer en orange les points dont
 `|résidu| > k·σ`; ils sont ajoutés à la légende sous le nom « outliers ».
 <p align="center">
-  <img src="docs/examples/price-vs-km-regression.png" alt="Régression linéaire (price vs km)" width="760">
+  <img src="docs/assets/plots/examples/price-vs-km-regression.png" alt="Régression linéaire (price vs km)" width="760">
   <br><em>Nuage de points et droite θ₀ + θ₁·x (après entraînement).</em>
 </p>
 

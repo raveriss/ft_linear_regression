@@ -82,7 +82,8 @@ poetry install --with dev
 ### ▶️ Lancement
 ```bash
 # Entraînement
-poetry run train --data data.csv --alpha 0.1 --iters 1000 --theta theta.json
+poetry run train --data data/samples/data.csv --alpha 0.1 --iters 1000 --theta theta.json
+
 
 # Prédiction
 poetry run predict 85000 --theta theta.json
@@ -168,11 +169,11 @@ Predicted price: 7991.88 €
 ---
 
 ## 📝 Données
-- Fichier : [`data.csv`](./data.csv) (colonnes `km,price`).  
+- Fichier : [`data/samples/data.csv`](./data/samples/data.csv) (colonnes `km,price`).  
 - Hypothèses :  
   - km ≥ 0  
   - valeurs numériques uniquement  
-  - 24 lignes d’exemple (corrélation ≈ −0,86)  
+  - 24 lignes d’exemple (corrélation ≈ −0,86)
 
 ---
 
@@ -288,14 +289,27 @@ Tests recommandés :
 
 ## 🎨 Visuel clé (bonus)
 <p align="center">
-  <a href="./docs/assets/plots/etape3_droites_successives.png">
-    <img src="./docs/assets/plots/etape3_droites_successives.png" alt="Descente de gradient — droites successives" width="760">
+  <a href="./docs/assets/plots/regression/etape3_droites_successives.png">
+    <img src="./docs/assets/plots/regression/etape3_droites_successives.png" alt="Descente de gradient — droites successives" width="760">
   </a>
   <br><em>La pente se met en place itération par itération (cliquer pour la galerie).</em>
 </p>
 
-➡️ Voir la galerie complète : [./docs/assets/GALLERIE.md](/docs/asset/GALLERIE.md) 
+➡️ Voir la galerie complète : [docs/regression_lineaire.md](./docs/regression_lineaire.md)
 
+---
+
+## 📊 Bonus : Bande de confiance 95 %
+
+Une analyse pédagogique pas à pas montre **pourquoi** la bande est
+étroite au centre et large aux extrêmes.
+
+<p align="center">
+  <img src="./docs/assets/plots/confiance/fig06_bande_95.png" alt="Bande de confiance 95%" width="600">
+  <br><em>Bande de confiance autour de la droite de régression (extrait).</em>
+</p>
+
+👉 Voir [docs/confidence_band.md](./docs/confidence_band.md)
 
 ---
 

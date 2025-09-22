@@ -286,6 +286,19 @@ Tests recommandés :
 
 ---
 
+## 🎨 Visuel clé (bonus)
+<p align="center">
+  <a href="./docs/GALLERIE.md">
+    <img src="./docs/plots/etape3_droites_successives.png" alt="Descente de gradient — droites successives" width="760">
+  </a>
+  <br><em>La pente se met en place itération par itération (cliquer pour la galerie).</em>
+</p>
+
+➡️ Voir la galerie complète : [docs/GALLERIE.md](./docs/GALLERIE.md)
+
+
+---
+
 ## 📖 Ressources utilisées
 
 Les contenus suivants ont été essentiels pour comprendre et implémenter la régression linéaire et l’algorithme du gradient :

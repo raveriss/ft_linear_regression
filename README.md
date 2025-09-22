@@ -294,7 +294,7 @@ Tests recommandés :
   <br><em>La pente se met en place itération par itération (cliquer pour la galerie).</em>
 </p>
 
-➡️ Voir la galerie complète : [/docs/assets/GALLERIE.md](./docs/asset/GALLERIE.md) 
+➡️ Voir la galerie complète : [./docs/assets/GALLERIE.md](/docs/asset/GALLERIE.md) 
 
 
 ---

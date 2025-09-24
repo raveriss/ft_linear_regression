@@ -148,8 +148,10 @@ def gradient_descent(
 
         # Formule officielle :
         # Δθ1 = α * (1/m) * Σ ( (h_theta(x_i) - y_i) * x_i )
-        delta_theta1 = taux_apprentissage * (1 / m) * sum(
-            erreur * km for (erreur, (km, _)) in zip(erreurs, donnees_km_prix)
+        delta_theta1 = (
+            taux_apprentissage
+            * (1 / m)
+            * sum(erreur * km for (erreur, (km, _)) in zip(erreurs, donnees_km_prix))
         )
 
         # Mise à jour simultanée :
@@ -162,7 +164,6 @@ def gradient_descent(
     # On retourne les coefficients entraînés
     # → ce sont les paramètres optimaux de la droite ajustée
     return theta0, theta1
-
 
 
 def save_theta(

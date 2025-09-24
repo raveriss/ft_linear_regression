@@ -119,62 +119,50 @@ def gradient_descent(
 ) -> tuple[float, float]:
     """Ajuste une droite de régression par descente de gradient.
 
-    L'équation a la forme ``prix = prix_base + pente * km``.
+    L'équation a la forme ``prix = theta0 + theta1 * km``.
 
     But:
-        Estimer prix_base (valeur à 0 km) et pente (variation par km)
-        pour réduire au minimum l'écart entre estimation et données CSV.
+        Estimer theta0 (intercept) et theta1 (pente)
+        en minimisant l’erreur entre prédictions et données réelles.
     """
 
-    # Correspondance des notations :
-    #      y =     a * x +  b
-    #   prix = pente * km + prix_base
-    #   équivalent à : y = θ1 * x + θ0
-    #   où pente = θ1 (coefficient directeur, a)
-    #       prix_base = θ0 (ordonnée à l'origine, b)
+    # On note theta0 = prix de base (ordonnée à l’origine)
+    # et theta1 = pente (variation du prix par km)
+    theta0 = 0.0
+    theta1 = 0.0
 
-    # On initialise à zéro pour donner un point de départ neutre
-    # et laisser l’algorithme d’apprentissage corriger progressivement
-    prix_base = 0.0
-    pente = 0.0
+    # m = nombre d’exemples (taille du dataset)
+    # → il sert au calcul du facteur 1/m dans la formule du sujet
+    m = float(len(donnees_km_prix))
 
-    # On divise toujours par le nombre d’exemples pour obtenir une moyenne,
-    # afin que l’ajustement ne dépende pas de la taille du dataset
-    nb_exemples = float(len(donnees_km_prix))
-
-    # On répète l’ajustement plusieurs fois pour converger vers la solution
-    # car une seule correction ne suffit jamais à minimiser l’erreur
+    # On répète la mise à jour plusieurs fois
+    # → une seule correction ne suffit pas à atteindre le minimum
     for _ in range(nb_iterations):
-        # L’ajustement du prix de base se fait en fonction de l’erreur moyenne :
-        # si en moyenne nos prédictions sont trop hautes ou trop basses,
-        # on corrige intercept pour recentrer la droite
-        ajustement_prix_base = (
-            sum((prix_base + pente * km) - prix for km, prix in donnees_km_prix)
-            / nb_exemples
+        # Erreur de prédiction pour chaque point :
+        # (h_theta(x_i) - y_i) avec h_theta(x) = theta0 + theta1 * x
+        erreurs = [(theta0 + theta1 * km) - prix for km, prix in donnees_km_prix]
+
+        # Formule officielle :
+        # Δθ0 = α * (1/m) * Σ (h_theta(x_i) - y_i)
+        delta_theta0 = taux_apprentissage * (1 / m) * sum(erreurs)
+
+        # Formule officielle :
+        # Δθ1 = α * (1/m) * Σ ( (h_theta(x_i) - y_i) * x_i )
+        delta_theta1 = taux_apprentissage * (1 / m) * sum(
+            erreur * km for (erreur, (km, _)) in zip(erreurs, donnees_km_prix)
         )
 
-        # L’ajustement de la pente prend en compte les kilomètres :
-        # les erreurs sur des grands km doivent peser plus fort,
-        # car elles influencent davantage la forme de la droite
-        ajustement_pente = (
-            sum(((prix_base + pente * km) - prix) * km for km, prix in donnees_km_prix)
-            / nb_exemples
-        )
+        # Mise à jour simultanée :
+        # θ0 := θ0 - Δθ0
+        # θ1 := θ1 - Δθ1
+        # → garantit que les deux corrections sont cohérentes
+        theta0 -= delta_theta0
+        theta1 -= delta_theta1
 
-        # On multiplie par le taux d’apprentissage pour contrôler la vitesse
-        # de convergence et éviter de “sauter” par-dessus la solution optimale
-        correction_prix_base = taux_apprentissage * ajustement_prix_base
-        correction_pente = taux_apprentissage * ajustement_pente
+    # On retourne les coefficients entraînés
+    # → ce sont les paramètres optimaux de la droite ajustée
+    return theta0, theta1
 
-        # On met à jour les coefficients en même temps pour garantir
-        # une descente cohérente : si on corrigeait l’un après l’autre,
-        # la mise à jour du second utiliserait déjà un premier biaisé
-        prix_base -= correction_prix_base
-        pente -= correction_pente
-
-    # On retourne les coefficients ajustés : ce sont les paramètres
-    # qui minimisent l’écart entre modèle et données observées
-    return prix_base, pente
 
 
 def save_theta(

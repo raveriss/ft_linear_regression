@@ -326,7 +326,7 @@ def _ecart_type_residus(
     # → on divise par (n - 2) car on a estimé 2 paramètres (θ0 et θ1),
     #   ce qui réduit les degrés de liberté
     # → plus la variance est grande, plus le modèle s’écarte des données
-    variance = sum(residu ** 2 for residu in residus) / (taille_echantillon - 2)
+    variance = sum(residu**2 for residu in residus) / (taille_echantillon - 2)
 
     # On prend la racine carrée pour revenir à l’unité d’origine (prix)
     # → l’écart-type rend l’ampleur de l’erreur directement interprétable

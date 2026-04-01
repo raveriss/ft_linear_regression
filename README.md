@@ -2,7 +2,6 @@
 
 <div align="center">
 
-![License](https://img.shields.io/github/license/raveriss/ft_linear_regression?logo=github&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.10-3776AB?logo=python&logoColor=white)
 [![CI](https://img.shields.io/github/actions/workflow/status/raveriss/ft_linear_regression/ci.yml?branch=main&logo=githubactions&logoColor=white)](https://github.com/raveriss/ft_linear_regression/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/codecov/c/github/raveriss/ft_linear_regression?logo=codecov&logoColor=white)](https://codecov.io/gh/raveriss/ft_linear_regression)
@@ -12,6 +11,7 @@
 ![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-FAB040?logo=precommit&logoColor=white)
 ![Code%20style](https://img.shields.io/badge/code%20style-black-000000?logo=black&logoColor=white)
 ![Security](https://img.shields.io/badge/security-bandit-2ea44f?logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPGcgZmlsbD0iI2ZmZmZmZiI%2BPHBhdGggZD0iTTEyIDNsNiAyLjJWOWMwIDEuMi0uNyAyLjMtMS44IDIuOGwtNC4yIDIuMS00LjItMi4xQTMuMSAzLjEgMCAwIDEgNiA5VjUuMnoiLz48cGF0aCBkPSJNNy41IDkuMmMuOS0xLjMgMi41LTIuMiA0LjUtMi4yczMuNi45IDQuNSAyLjJjLS44IDEuMy0yLjQgMi4yLTQuNSAyLjJzLTMuNy0uOS00LjUtMi4yeiIvPjxjaXJjbGUgY3g9IjEwIiBjeT0iOS4yIiByPSIxIi8%2BPGNpcmNsZSBjeD0iMTQiIGN5PSI5LjIiIHI9IjEiLz48cGF0aCBkPSJNMTEgMTMuNWgyVjE4aC0yeiIvPjxwYXRoIGQ9Ik05IDE3aDZ2Mkg5eiIvPjwvZz48L3N2Zz4%3D)
+![License](https://img.shields.io/github/license/raveriss/ft_linear_regression?logo=github&logoColor=white)
 
 </div>
 

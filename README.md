@@ -385,4 +385,4 @@ MIT © 2025 — raveriss
 Étudiant IA/Data — École 42 Paris<br>
 GitHub : https://github.com/raveriss<br>
 LinkedIn : https://www.linkedin.com/in/verissimo-rafael/<br>
-Portfolio : https://github.com/raveriss
+Portfolio : https://raveriss.dev/
